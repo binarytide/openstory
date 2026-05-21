@@ -14,7 +14,7 @@
   ],
   "homepage": "https://openbook.dev",
   "bugs": {
-    "url": "https://github.com/millionco/openbook/issues"
+    "url": "https://github.com/millionco/openstory/issues"
   },
   "license": "MIT",
   "author": {
@@ -23,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/millionco/openbook.git"
+    "url": "git+https://github.com/millionco/openstory.git"
   },
   "bin": {
     "openbook": "./dist/cli.mjs"

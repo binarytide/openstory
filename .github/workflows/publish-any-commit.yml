@@ -1,7 +1,10 @@
 name: Publish Any Commit
 on: [push, pull_request]
 
-permissions: {}
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
 
 jobs:
   build:
