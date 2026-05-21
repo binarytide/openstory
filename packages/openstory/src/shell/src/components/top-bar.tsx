@@ -34,46 +34,51 @@ export const TopBar = ({
   const globalEntries = Object.entries(manifest.globalTypes);
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-3 border-b border-border bg-background px-3">
+    <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background px-2 sm:gap-3 sm:px-3">
       <Button
         variant="ghost"
         size="icon"
         onClick={onToggleNav}
         aria-label={isNavCollapsed ? "Show sidebar" : "Hide sidebar"}
+        className="shrink-0"
       >
         <Sidebar className="h-4 w-4" />
       </Button>
-      <Separator orientation="vertical" className="h-6" />
-      <div className="text-sm font-semibold tracking-tight">Openstory</div>
+      <Separator orientation="vertical" className="hidden h-6 sm:block" />
+      <div className="truncate text-sm font-semibold tracking-tight">Openstory</div>
 
-      <div className="flex-1" />
+      <div className="min-w-0 flex-1" />
 
-      {globalEntries.map(([key, definition]) => {
-        const items = toolbarItems(definition.toolbar);
-        if (items.length === 0) return null;
-        const currentValue = String(globals[key] ?? "");
-        return (
-          <Select
-            key={key}
-            value={currentValue}
-            onValueChange={(next) => onGlobalChange(key, next)}
-          >
-            <SelectTrigger className="h-8 w-36">
-              <span className="mr-1 text-muted-foreground">
-                {definition.toolbar?.title ?? key}:
-              </span>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {items.map((item) => (
-                <SelectItem key={String(item.value)} value={String(item.value)}>
-                  {item.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        );
-      })}
+      <div className="flex min-w-0 items-center gap-2 overflow-x-auto">
+        {globalEntries.map(([key, definition]) => {
+          const items = toolbarItems(definition.toolbar);
+          if (items.length === 0) return null;
+          const currentValue = String(globals[key] ?? "");
+          const titleLabel = definition.toolbar?.title ?? key;
+          return (
+            <Select
+              key={key}
+              value={currentValue}
+              onValueChange={(next) => onGlobalChange(key, next)}
+            >
+              <SelectTrigger
+                className="h-8 w-auto min-w-24 max-w-40 shrink-0 sm:min-w-36"
+                aria-label={titleLabel}
+              >
+                <span className="mr-1 hidden text-muted-foreground sm:inline">{titleLabel}:</span>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {items.map((item) => (
+                  <SelectItem key={String(item.value)} value={String(item.value)}>
+                    {item.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          );
+        })}
+      </div>
     </header>
   );
 };
