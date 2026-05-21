@@ -1,6 +1,5 @@
 import { createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
 import type { Meta, StoryContext, StoryObj } from "openstory/solid";
-// @ts-expect-error: openstory/test ships no DTS by design.
 import { expect, waitFor } from "openstory/test";
 import { ReactGrabRenderer } from "react-grab/src/components/renderer.js";
 import type { OverlayBounds } from "react-grab/src/types.js";

@@ -4,7 +4,6 @@
 
 import type { Component } from "solid-js";
 import type { Meta, StoryObj } from "openstory/solid";
-// @ts-expect-error: openstory/test has no DTS by design.
 import { expect, waitFor } from "openstory/test";
 
 interface ButtonProps {

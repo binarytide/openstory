@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "openstory/solid";
-// @ts-expect-error: openstory/test ships no DTS by design.
 import { expect, waitFor } from "openstory/test";
 import { Toolbar } from "react-grab/src/components/toolbar/index.js";
 import { Canvas } from "./target-box.js";

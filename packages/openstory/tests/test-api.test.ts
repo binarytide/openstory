@@ -4,14 +4,10 @@
 
 import { describe, expect, it } from "vitest";
 
-// openstory/test ships no .d.ts (the side-effect import of jest-dom matchers can't
-// be DTS-bundled). Consumers get typings via jest-dom's ambient augmentation
-// once they `import "openstory/test"`; tests dynamic-import as `unknown`.
-async function loadOpenstoryTest(): Promise<Record<string, unknown>> {
-  // @ts-expect-error: see comment above; openstory/test has no DTS by design.
+const loadOpenstoryTest = async (): Promise<Record<string, unknown>> => {
   const mod = (await import("openstory/test")) as Record<string, unknown>;
   return mod;
-}
+};
 
 describe("openstory/test API surface", () => {
   it("exports the full play-function toolkit", async () => {

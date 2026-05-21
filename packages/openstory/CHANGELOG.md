@@ -1,5 +1,11 @@
 # openstory
 
+## 0.0.3
+
+### Patch Changes
+
+- Ship `dist/test.d.ts` for `openstory/test`. The DTS is hand-emitted because the auto-DTS bundler couldn't inline `@testing-library/jest-dom/vitest`'s module augmentation. Consumers no longer need `@ts-expect-error` when importing `expect`, `waitFor`, `userEvent`, `vi`, `step`, etc. jest-dom matchers attach to `expect` via the bundled triple-slash reference.
+
 ## 0.0.2
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "openstory",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A lightweight, Vite-native CSF 3 alternative to Storybook. Agent-first component lab.",
   "keywords": [
     "components",
@@ -68,6 +68,7 @@
       "default": "./dist/svelte.js"
     },
     "./test": {
+      "types": "./dist/test.d.ts",
       "default": "./dist/test.js"
     },
     "./mcp": {
@@ -84,8 +85,9 @@
     "access": "public"
   },
   "scripts": {
-    "build": "pnpm run build:shell && vp pack",
+    "build": "pnpm run build:shell && vp pack && pnpm run build:test-dts",
     "build:shell": "node ./scripts/build-shell.mjs",
+    "build:test-dts": "node ./scripts/build-test-dts.mjs",
     "dev": "vp pack --watch",
     "test": "vp test",
     "test:integration": "vp test --project integration",

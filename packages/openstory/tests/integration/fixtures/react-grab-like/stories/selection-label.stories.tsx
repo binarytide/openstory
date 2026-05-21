@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "openstory/solid";
-// @ts-expect-error: openstory/test ships no DTS by design.
 import { expect, waitFor } from "openstory/test";
 import { SelectionLabel } from "react-grab/src/components/selection-label/index.js";
 import type { SelectionLabelProps } from "react-grab/src/types.js";

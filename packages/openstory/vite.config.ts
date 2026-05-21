@@ -38,10 +38,10 @@ export default defineConfig({
       sourcemap: true,
       minify: false,
     },
-    // openstory/test: pure re-export of testing libs. DTS skipped because
-    // @testing-library/jest-dom/vitest is a side-effect import the DTS
-    // bundler cannot inline; consumers get matcher types via jest-dom's own
-    // ambient module augmentation when they import "openstory/test".
+    // openstory/test: pure re-export of testing libs. The bundler can't inline
+    // jest-dom's vitest module augmentation (it imports a type that isn't
+    // re-exported from its own matchers.d.ts), so DTS is emitted by hand from
+    // ./scripts/build-test-dts.mjs and shipped as dist/test.d.ts.
     {
       entry: { test: "./src/test/index.ts" },
       format: ["esm"],
