@@ -8,7 +8,7 @@ import { OpenstoryCsfDuplicateStoryIdError } from "../errors.js";
 import { parseCsf, type ParsedStory } from "../csf/parser.js";
 import { parsePreview } from "../csf/preview-parser.js";
 import type { Framework, GlobalType, Manifest, ManifestStory, StoryParameters } from "../types.js";
-import { AutoStoriesBuilder, type AutoStoriesConfig } from "./auto-stories.js";
+import { ComponentStoriesBuilder, type ComponentStoriesConfig } from "./component-stories.js";
 
 export interface BuildManifestOptions {
   projectRoot: string;
@@ -17,7 +17,7 @@ export interface BuildManifestOptions {
   framework: Framework;
   previewPath?: string;
   devServer?: ViteDevServer;
-  auto?: AutoStoriesConfig;
+  components?: ComponentStoriesConfig;
 }
 
 export interface ManifestCacheEntry {
@@ -69,15 +69,15 @@ const parsedStoryToManifestStory = (
 export class ManifestBuilder {
   private cache = new Map<string, ManifestCacheEntry>();
   private previewCache: { mtime: number; meta: PreviewMetadata } | undefined;
-  private autoBuilder: AutoStoriesBuilder | undefined;
+  private componentStoriesBuilder: ComponentStoriesBuilder | undefined;
   private devServer: ViteDevServer | undefined;
   private readonly options: BuildManifestOptions;
 
   constructor(options: BuildManifestOptions) {
     this.options = options;
     this.devServer = options.devServer;
-    if (options.auto) {
-      this.autoBuilder = new AutoStoriesBuilder();
+    if (options.components) {
+      this.componentStoriesBuilder = new ComponentStoriesBuilder();
     }
   }
 
@@ -89,14 +89,14 @@ export class ManifestBuilder {
     if (absolutePath === undefined) {
       this.cache.clear();
       this.previewCache = undefined;
-      this.autoBuilder?.invalidate();
+      this.componentStoriesBuilder?.invalidate();
       return;
     }
     this.cache.delete(absolutePath);
     if (this.options.previewPath === absolutePath) {
       this.previewCache = undefined;
     }
-    this.autoBuilder?.invalidate(absolutePath);
+    this.componentStoriesBuilder?.invalidate(absolutePath);
   };
 
   build = async (): Promise<Manifest> => {
@@ -114,16 +114,16 @@ export class ManifestBuilder {
       allStories.push(...cacheEntry.stories);
     }
 
-    if (this.autoBuilder && this.options.auto) {
+    if (this.componentStoriesBuilder && this.options.components) {
       const userStoryIds = new Set(allStories.map((story) => story.id));
-      const autoStories = await this.autoBuilder.build({
+      const synthesizedStories = await this.componentStoriesBuilder.build({
         projectRoot: this.options.projectRoot,
         framework: this.options.framework,
-        config: this.options.auto,
+        config: this.options.components,
       });
-      for (const autoStory of autoStories) {
-        if (userStoryIds.has(autoStory.id)) continue;
-        allStories.push(autoStory);
+      for (const synthesizedStory of synthesizedStories) {
+        if (userStoryIds.has(synthesizedStory.id)) continue;
+        allStories.push(synthesizedStory);
       }
     }
 

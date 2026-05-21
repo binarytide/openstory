@@ -6,7 +6,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Connect, Plugin, ViteDevServer } from "vite";
 
 import {
-  AUTO_IGNORE_GLOBS,
+  COMPONENT_IGNORE_GLOBS,
   DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK,
   DEFAULT_IGNORE_GLOBS,
   DEFAULT_STORY_GLOBS,
@@ -17,7 +17,7 @@ import {
 import { OpenstoryStoryNotFoundError } from "../errors.js";
 import type { Framework, Manifest, ManifestStory } from "../types.js";
 
-import { type AutoStoriesConfig } from "./auto-stories.js";
+import { type ComponentStoriesConfig } from "./component-stories.js";
 import { detectFramework } from "./framework-detection.js";
 import { ManifestBuilder } from "./manifest.js";
 import { findPreviewFile } from "./preview-discovery.js";
@@ -34,8 +34,8 @@ export interface OpenstoryUiOptions {
   theme?: "dark" | "light" | "system";
 }
 
-export interface OpenstoryAutoOption {
-  components?: string | string[];
+export interface OpenstoryComponentsOption {
+  include?: string | string[];
   ignore?: string[];
 }
 
@@ -46,7 +46,7 @@ export interface OpenstoryOptions {
   preview?: string;
   ui?: OpenstoryUiOptions;
   port?: number;
-  auto?: boolean | OpenstoryAutoOption;
+  components?: boolean | OpenstoryComponentsOption;
 }
 
 export const defineOpenstory = (options: OpenstoryOptions): OpenstoryOptions => options;
@@ -93,25 +93,25 @@ const normalizeStories = (stories: OpenstoryOptions["stories"]): string[] => {
   return Array.isArray(stories) ? stories : [stories];
 };
 
-const normalizeAutoOption = (
-  option: OpenstoryOptions["auto"],
+const normalizeComponentsOption = (
+  option: OpenstoryOptions["components"],
   framework: Framework,
-): AutoStoriesConfig | undefined => {
+): ComponentStoriesConfig | undefined => {
   if (!option) return undefined;
-  const componentSource =
-    typeof option === "object" && option.components !== undefined
-      ? option.components
+  const includeSource =
+    typeof option === "object" && option.include !== undefined
+      ? option.include
       : DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK[framework];
-  const componentGlobs = Array.isArray(componentSource)
-    ? componentSource
-    : componentSource !== undefined
-      ? [componentSource]
+  const include = Array.isArray(includeSource)
+    ? includeSource
+    : includeSource !== undefined
+      ? [includeSource]
       : [];
-  const userIgnoreGlobs =
+  const userIgnore =
     typeof option === "object" && Array.isArray(option.ignore) ? option.ignore : [];
   return {
-    componentGlobs,
-    ignoreGlobs: [...DEFAULT_IGNORE_GLOBS, ...AUTO_IGNORE_GLOBS, ...userIgnoreGlobs],
+    include,
+    ignore: [...DEFAULT_IGNORE_GLOBS, ...COMPONENT_IGNORE_GLOBS, ...userIgnore],
   };
 };
 
@@ -239,7 +239,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
   let projectRoot = process.cwd();
   let framework: Framework = "react";
   let previewPath: string | undefined;
-  let autoConfig: AutoStoriesConfig | undefined;
+  let componentsConfig: ComponentStoriesConfig | undefined;
   let builder: ManifestBuilder;
   let snapshotPromise: Promise<ManifestSnapshot> | undefined;
 
@@ -273,7 +273,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
       previewPath = userOptions.preview
         ? resolvePathOption(projectRoot, userOptions.preview)
         : await findPreviewFile(projectRoot);
-      autoConfig = normalizeAutoOption(userOptions.auto, framework);
+      componentsConfig = normalizeComponentsOption(userOptions.components, framework);
 
       builder = new ManifestBuilder({
         projectRoot,
@@ -281,7 +281,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
         ignore: ignoreGlobs,
         framework,
         previewPath,
-        auto: autoConfig,
+        components: componentsConfig,
       });
     },
 
@@ -300,7 +300,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
       if (/\.stories\.[tj]sx?$/.test(ctx.file)) {
         invalidateManifest(ctx.file);
       }
-      if (autoConfig) {
+      if (componentsConfig) {
         invalidateManifest(ctx.file);
       }
       if (previewPath && ctx.file === previewPath) {

@@ -5,9 +5,9 @@ import { OpenstoryBuildFailedError } from "../errors.js";
 import { ManifestBuilder } from "../plugin/manifest.js";
 import { detectFramework } from "../plugin/framework-detection.js";
 import { findPreviewFile } from "../plugin/preview-discovery.js";
-import { openstory, type OpenstoryAutoOption } from "../plugin/index.js";
+import { openstory, type OpenstoryComponentsOption } from "../plugin/index.js";
 import {
-  AUTO_IGNORE_GLOBS,
+  COMPONENT_IGNORE_GLOBS,
   DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK,
   DEFAULT_IGNORE_GLOBS,
   DEFAULT_STORY_GLOBS,
@@ -16,7 +16,7 @@ import {
   OPENSTORY_ROOT_ELEMENT_ID,
   VIRTUAL_STORY_ENTRY_ID,
 } from "../constants.js";
-import type { AutoStoriesConfig } from "../plugin/auto-stories.js";
+import type { ComponentStoriesConfig } from "../plugin/component-stories.js";
 import { escapeAttribute } from "../utils/escape-attribute.js";
 import type { Framework, ManifestStory } from "../types.js";
 
@@ -51,28 +51,28 @@ export interface BuildOptions {
   outDir: string;
   base: string;
   framework?: Framework;
-  auto?: boolean | OpenstoryAutoOption;
+  components?: boolean | OpenstoryComponentsOption;
 }
 
-const resolveAutoConfig = (
-  option: boolean | OpenstoryAutoOption | undefined,
+const resolveComponentsConfig = (
+  option: boolean | OpenstoryComponentsOption | undefined,
   framework: Framework,
-): AutoStoriesConfig | undefined => {
+): ComponentStoriesConfig | undefined => {
   if (!option) return undefined;
-  const componentSource =
-    typeof option === "object" && option.components !== undefined
-      ? option.components
+  const includeSource =
+    typeof option === "object" && option.include !== undefined
+      ? option.include
       : DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK[framework];
-  const componentGlobs = Array.isArray(componentSource)
-    ? componentSource
-    : componentSource !== undefined
-      ? [componentSource]
+  const include = Array.isArray(includeSource)
+    ? includeSource
+    : includeSource !== undefined
+      ? [includeSource]
       : [];
-  const userIgnoreGlobs =
+  const userIgnore =
     typeof option === "object" && Array.isArray(option.ignore) ? option.ignore : [];
   return {
-    componentGlobs,
-    ignoreGlobs: [...DEFAULT_IGNORE_GLOBS, ...AUTO_IGNORE_GLOBS, ...userIgnoreGlobs],
+    include,
+    ignore: [...DEFAULT_IGNORE_GLOBS, ...COMPONENT_IGNORE_GLOBS, ...userIgnore],
   };
 };
 
@@ -134,7 +134,7 @@ ${cssLinks}
 export const runBuild = async (projectRoot: string, options: BuildOptions): Promise<void> => {
   const framework = options.framework ?? (await detectFramework(projectRoot));
   const previewPath = await findPreviewFile(projectRoot);
-  const autoConfig = resolveAutoConfig(options.auto, framework);
+  const componentsConfig = resolveComponentsConfig(options.components, framework);
 
   const builder = new ManifestBuilder({
     projectRoot,
@@ -142,7 +142,7 @@ export const runBuild = async (projectRoot: string, options: BuildOptions): Prom
     ignore: DEFAULT_IGNORE_GLOBS,
     framework,
     previewPath,
-    auto: autoConfig,
+    components: componentsConfig,
   });
 
   const manifest = await builder.build().catch((cause: unknown) => {
@@ -165,7 +165,7 @@ export const runBuild = async (projectRoot: string, options: BuildOptions): Prom
     root: projectRoot,
     base: options.base,
     logLevel: "warn",
-    plugins: [openstory({ framework, preview: previewPath, auto: options.auto })],
+    plugins: [openstory({ framework, preview: previewPath, components: options.components })],
     build: {
       outDir: absoluteOutDir,
       emptyOutDir: true,

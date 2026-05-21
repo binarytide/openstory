@@ -1,4 +1,4 @@
-import { openstory, type OpenstoryAutoOption } from "../plugin/index.js";
+import { openstory, type OpenstoryComponentsOption } from "../plugin/index.js";
 import type { Framework } from "../types.js";
 
 export interface DevOptions {
@@ -6,7 +6,7 @@ export interface DevOptions {
   host: string;
   open: boolean;
   framework?: Framework;
-  auto?: boolean | OpenstoryAutoOption;
+  components?: boolean | OpenstoryComponentsOption;
 }
 
 export const runDev = async (options: DevOptions): Promise<void> => {
@@ -17,7 +17,7 @@ export const runDev = async (options: DevOptions): Promise<void> => {
       host: options.host,
       open: options.open,
     },
-    plugins: [openstory({ framework: options.framework, auto: options.auto })],
+    plugins: [openstory({ framework: options.framework, components: options.components })],
   });
   await server.listen();
   server.printUrls();

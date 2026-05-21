@@ -6,18 +6,18 @@ import type { Framework, ManifestStory } from "../types.js";
 import { deriveTitleFromPath } from "../utils/derive-title-from-path.js";
 import { findComponentsInFile } from "../utils/find-components.js";
 
-export interface AutoStoriesConfig {
-  componentGlobs: string[];
-  ignoreGlobs: string[];
+export interface ComponentStoriesConfig {
+  include: string[];
+  ignore: string[];
 }
 
-export interface BuildAutoStoriesOptions {
+export interface BuildComponentStoriesOptions {
   projectRoot: string;
   framework: Framework;
-  config: AutoStoriesConfig;
+  config: ComponentStoriesConfig;
 }
 
-export interface AutoStoryCacheEntry {
+export interface ComponentStoryCacheEntry {
   mtime: number;
   stories: ManifestStory[];
 }
@@ -28,32 +28,32 @@ const buildStoriesForFile = (
   importPath: string,
   framework: Framework,
 ): ManifestStory[] => {
-  const components = findComponentsInFile(source, absolutePath, framework);
-  if (components.length === 0) return [];
+  const detectedComponents = findComponentsInFile(source, absolutePath, framework);
+  if (detectedComponents.length === 0) return [];
   const title = deriveTitleFromPath(importPath);
-  return components.map((component) => {
-    const componentExport = component.isDefaultExport ? "default" : component.name;
+  return detectedComponents.map((detectedComponent) => {
+    const componentExport = detectedComponent.isDefaultExport ? "default" : detectedComponent.name;
     return {
-      id: toId(title, component.name),
-      name: component.name,
+      id: toId(title, detectedComponent.name),
+      name: detectedComponent.name,
       title,
       importPath,
       exportName: "Default",
-      componentPath: component.name,
+      componentPath: detectedComponent.name,
       argTypes: {},
       initialArgs: {},
       parameters: {},
-      tags: ["auto"],
+      tags: ["components"],
       hasPlay: false,
       hasBeforeEach: false,
       hasRender: true,
-      auto: { componentExport },
+      synthesized: { componentExport },
     } satisfies ManifestStory;
   });
 };
 
-export class AutoStoriesBuilder {
-  private cache = new Map<string, AutoStoryCacheEntry>();
+export class ComponentStoriesBuilder {
+  private cache = new Map<string, ComponentStoryCacheEntry>();
 
   invalidate = (absolutePath?: string): void => {
     if (absolutePath === undefined) {
@@ -65,10 +65,10 @@ export class AutoStoriesBuilder {
 
   has = (absolutePath: string): boolean => this.cache.has(absolutePath);
 
-  build = async (options: BuildAutoStoriesOptions): Promise<ManifestStory[]> => {
-    const componentFiles = await fg(options.config.componentGlobs, {
+  build = async (options: BuildComponentStoriesOptions): Promise<ManifestStory[]> => {
+    const componentFiles = await fg(options.config.include, {
       cwd: options.projectRoot,
-      ignore: options.config.ignoreGlobs,
+      ignore: options.config.ignore,
       absolute: true,
       onlyFiles: true,
       followSymbolicLinks: false,
@@ -76,16 +76,16 @@ export class AutoStoriesBuilder {
 
     const allStories: ManifestStory[] = [];
     for (const absolutePath of componentFiles.sort()) {
-      const entry = await this.parseFile(absolutePath, options);
-      allStories.push(...entry.stories);
+      const cacheEntry = await this.parseFile(absolutePath, options);
+      allStories.push(...cacheEntry.stories);
     }
     return allStories;
   };
 
   private parseFile = async (
     absolutePath: string,
-    options: BuildAutoStoriesOptions,
-  ): Promise<AutoStoryCacheEntry> => {
+    options: BuildComponentStoriesOptions,
+  ): Promise<ComponentStoryCacheEntry> => {
     const mtime = (await stat(absolutePath)).mtimeMs;
     const cached = this.cache.get(absolutePath);
     if (cached && cached.mtime === mtime) return cached;
@@ -93,7 +93,7 @@ export class AutoStoriesBuilder {
     const source = await readFile(absolutePath, "utf8");
     const importPath = relative(options.projectRoot, absolutePath).split("\\").join("/");
     const stories = buildStoriesForFile(source, absolutePath, importPath, options.framework);
-    const entry: AutoStoryCacheEntry = { mtime, stories };
+    const entry: ComponentStoryCacheEntry = { mtime, stories };
     this.cache.set(absolutePath, entry);
     return entry;
   };

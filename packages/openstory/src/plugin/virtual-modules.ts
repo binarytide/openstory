@@ -6,16 +6,16 @@ import {
   VIRTUAL_NULL_PREFIX,
   VIRTUAL_STORY_ENTRY_ID,
 } from "../constants.js";
-import type { Framework, ManifestStory, ManifestStoryAuto } from "../types.js";
+import type { Framework, ManifestStory, ManifestStorySynthesized } from "../types.js";
 import { escapeAttribute } from "../utils/escape-attribute.js";
 import { toFsId } from "../utils/to-fs-id.js";
 
-interface AutoFrameworkHelpers {
+interface ComponentFrameworkHelpers {
   importLine: string;
   renderExpression: (componentLocal: string) => string;
 }
 
-const AUTO_FRAMEWORK_HELPERS: Record<Framework, AutoFrameworkHelpers> = {
+const COMPONENT_FRAMEWORK_HELPERS: Record<Framework, ComponentFrameworkHelpers> = {
   react: {
     importLine: `import { createElement as __openstoryCreateElement } from "react";`,
     renderExpression: (componentLocal) =>
@@ -114,10 +114,10 @@ export const synthesizeStoryEntry = (options: SynthesizeEntryOptions): string =>
     ? `import preview from ${JSON.stringify(toFsId(previewPath))};`
     : "const preview = undefined;";
 
-  if (story.auto) {
-    return synthesizeAutoStoryEntry({
+  if (story.synthesized) {
+    return synthesizeComponentStoryEntry({
       story,
-      auto: story.auto,
+      synthesized: story.synthesized,
       framework,
       adapterSpecifier,
       previewImport,
@@ -146,18 +146,19 @@ if (import.meta.hot) {
 `;
 };
 
-interface SynthesizeAutoEntryOptions {
+interface SynthesizeComponentEntryOptions {
   story: ManifestStory;
-  auto: ManifestStoryAuto;
+  synthesized: ManifestStorySynthesized;
   framework: Framework;
   adapterSpecifier: string | undefined;
   previewImport: string;
   storyAbsolutePath: string;
 }
 
-const synthesizeAutoStoryEntry = (options: SynthesizeAutoEntryOptions): string => {
-  const { story, auto, framework, adapterSpecifier, previewImport, storyAbsolutePath } = options;
-  const helpers = AUTO_FRAMEWORK_HELPERS[framework];
+const synthesizeComponentStoryEntry = (options: SynthesizeComponentEntryOptions): string => {
+  const { story, synthesized, framework, adapterSpecifier, previewImport, storyAbsolutePath } =
+    options;
+  const helpers = COMPONENT_FRAMEWORK_HELPERS[framework];
   const helperImport = helpers.importLine ? `${helpers.importLine}\n` : "";
   const renderExpression = helpers.renderExpression("__openstoryComponent");
 
@@ -166,7 +167,7 @@ import { boot } from "openstory/boot";
 ${previewImport}
 import * as __openstoryComponentModule from ${JSON.stringify(toFsId(storyAbsolutePath))};
 ${helperImport}
-const __openstoryComponent = __openstoryComponentModule[${JSON.stringify(auto.componentExport)}];
+const __openstoryComponent = __openstoryComponentModule[${JSON.stringify(synthesized.componentExport)}];
 const __openstoryMeta = {
   title: ${JSON.stringify(story.title)},
   component: __openstoryComponent,

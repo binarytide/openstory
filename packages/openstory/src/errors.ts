@@ -282,16 +282,6 @@ export class OpenstoryCliMissingArgError extends OpenstoryCliError {
   }
 }
 
-export class OpenstoryCliNoComponentsFoundError extends OpenstoryCliError {
-  override readonly code = "OpenstoryCliNoComponentsFoundError";
-  constructor(searchedGlobs: string[]) {
-    super(
-      `No components found. Searched: ${searchedGlobs.join(", ")}. Pass globs as positional args (e.g. \`openstory auto "src/**/*.tsx"\`) or check the project layout.`,
-      { searchedGlobs },
-    );
-  }
-}
-
 export class OpenstoryBuildError extends OpenstoryError {
   readonly category = "build" as const;
   readonly exitCode = 4;

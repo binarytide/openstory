@@ -154,71 +154,49 @@ Swap your story imports. `meta`, `decorators`, `parameters`, `globalTypes`, `ini
 ## CLI
 
 ```
-openstory dev        start the dev server (--auto to synthesize stories from components)
-openstory build      build a static deployable site (--auto to include synthesized stories)
+openstory dev        start the dev server
+openstory build      build a static deployable site
 openstory preview    serve the built site
 openstory init       scaffold preview + vite config (react|solid|vue|svelte)
-openstory auto       scan repo for components and write stories files to disk
 openstory list       print manifest (--json for raw)
 openstory inspect    print details for one story (--json for raw)
 ```
 
-### `openstory dev --auto` / `openstory build --auto` (ephemeral)
+### Component-driven stories (no files on disk)
 
-Pass `--auto` to `dev` or `build` to synthesize a story for every component in the repo **on the fly** — no files are written to disk. The manifest, the iframe HTML, and the virtual story modules are all generated in memory and stay in sync with your source as you edit.
+Pass `--components` to `dev` or `build` to synthesize a story for every component in the repo **on the fly**. Nothing is written to disk. The manifest, the iframe HTML, and the per-story virtual module are all generated in memory and stay in sync with your source as you edit.
 
 ```bash
-pnpm exec openstory dev --auto
-pnpm exec openstory dev --auto --auto-components "src/ui/**/*.tsx"
-pnpm exec openstory build --auto --out dist
+pnpm exec openstory dev --components
+pnpm exec openstory dev --components --components-include "src/ui/**/*.tsx"
+pnpm exec openstory build --components --out dist
 ```
 
 Flags (shared by `dev` and `build`):
 
 ```
---auto                       enable ephemeral story synthesis
---auto-components <glob>     custom glob for component discovery (repeatable; defaults to framework)
---auto-ignore <glob>         additional ignore glob (repeatable)
+--components                       enable component-driven story synthesis
+--components-include <glob>        custom component glob (repeatable; defaults to framework)
+--components-ignore <glob>         additional ignore glob (repeatable)
 ```
 
-The same option is available programmatically:
+The same option is available programmatically — symmetric with `stories`:
 
 ```ts
 import { openstory } from "openstory/plugin";
 
-openstory({ auto: true });
-openstory({ auto: { components: ["src/ui/**/*.tsx"], ignore: ["**/*-internal.tsx"] } });
+openstory({ stories: ["**/*.stories.tsx"] });
+openstory({ components: true });
+openstory({ components: { include: ["src/ui/**/*.tsx"], ignore: ["**/*-internal.tsx"] } });
 ```
 
-Hand-written `*.stories.*` files always win over synthesized ones when their story ids collide.
-
-### `openstory auto` (materialize on disk)
-
-`openstory auto` is the file-writing counterpart for when you want to commit the generated stories. It applies the same detection rules and writes a CSF 3 `*.stories.{tsx,ts}` file alongside each component.
-
-```bash
-pnpm exec openstory auto                     # detect framework + scan default globs
-pnpm exec openstory auto "src/**/*.tsx"      # restrict to a custom glob
-pnpm exec openstory auto "src/ui/*.tsx" "src/forms/*.tsx" --dry-run
-pnpm exec openstory auto --out stories --force
-```
-
-Detection rules (both `--auto` and the `auto` command):
+Detection rules:
 
 - React / Solid: any PascalCase named export, plus default exports, in `.tsx`/`.jsx` files.
 - Vue: each `.vue` SFC, named from its filename.
 - Svelte: each `.svelte` component, named from its filename.
 
-`openstory auto` flags:
-
-```
---framework <name>   react|solid|vue|svelte (auto-detected by default)
---out <dir>          write all stories to <dir> instead of next to each component
---ignore <glob>      additional ignore glob (repeatable)
---force              overwrite existing stories files
---dry-run            print the plan without writing files
---json               machine-readable summary
-```
+Hand-written `*.stories.*` files always win over synthesized ones when their story ids collide.
 
 See [`packages/openstory/src/types.ts`](https://github.com/millionco/openstory/blob/main/packages/openstory/src/types.ts) for the full `Meta`, `StoryObj`, `Preview`, `Decorator`, `PlayFunction`, and `OpenstoryRenderer` interfaces.
 

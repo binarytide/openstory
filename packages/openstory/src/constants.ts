@@ -24,7 +24,7 @@ export const DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK: Record<string, string[]> = {
   svelte: ["**/*.svelte"],
 };
 
-export const AUTO_IGNORE_GLOBS = [
+export const COMPONENT_IGNORE_GLOBS = [
   "**/*.stories.{ts,tsx,js,jsx}",
   "**/*.test.{ts,tsx,js,jsx}",
   "**/*.spec.{ts,tsx,js,jsx}",

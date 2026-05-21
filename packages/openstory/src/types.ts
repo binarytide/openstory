@@ -25,10 +25,10 @@ export interface ManifestStory {
   hasPlay: boolean;
   hasBeforeEach: boolean;
   hasRender: boolean;
-  auto?: ManifestStoryAuto;
+  synthesized?: ManifestStorySynthesized;
 }
 
-export interface ManifestStoryAuto {
+export interface ManifestStorySynthesized {
   componentExport: string;
 }
 

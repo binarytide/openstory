@@ -16,10 +16,10 @@ const writeFixture = async (relativePath: string, contents: string): Promise<voi
 };
 
 beforeAll(async () => {
-  projectRoot = await mkdtemp(join(tmpdir(), "openstory-plugin-auto-"));
+  projectRoot = await mkdtemp(join(tmpdir(), "openstory-plugin-components-"));
   await writeFixture(
     "package.json",
-    JSON.stringify({ name: "auto-fixture", dependencies: { react: "^19.0.0" } }),
+    JSON.stringify({ name: "components-fixture", dependencies: { react: "^19.0.0" } }),
   );
   await writeFixture(
     "src/components/Button.tsx",
@@ -35,7 +35,7 @@ beforeAll(async () => {
     root: projectRoot,
     configFile: false,
     appType: "custom",
-    plugins: [openstory({ framework: "react", auto: true })],
+    plugins: [openstory({ framework: "react", components: true })],
     server: { port: 0, host: "127.0.0.1", strictPort: false },
     logLevel: "silent",
   });
@@ -59,7 +59,7 @@ afterAll(async () => {
   }
 }, 10_000);
 
-describe("plugin auto: dev manifest", () => {
+describe("plugin components: dev manifest", () => {
   it("synthesizes manifest entries for components without any .stories file", async () => {
     const response = await fetch(`${baseUrl}/__openstory/manifest.json`);
     expect(response.status).toBe(200);
@@ -72,7 +72,7 @@ describe("plugin auto: dev manifest", () => {
         title: string;
         importPath: string;
         tags: string[];
-        auto?: { componentExport: string };
+        synthesized?: { componentExport: string };
       }>;
     };
 
@@ -82,15 +82,15 @@ describe("plugin auto: dev manifest", () => {
 
     const buttonStory = manifest.stories.find((entry) => entry.id === "components-button--button")!;
     expect(buttonStory.title).toBe("Components/Button");
-    expect(buttonStory.tags).toContain("auto");
-    expect(buttonStory.auto).toEqual({ componentExport: "Button" });
+    expect(buttonStory.tags).toContain("components");
+    expect(buttonStory.synthesized).toEqual({ componentExport: "Button" });
     expect(buttonStory.importPath).toBe("src/components/Button.tsx");
 
     const cardStory = manifest.stories.find((entry) => entry.id === "card--card")!;
-    expect(cardStory.auto).toEqual({ componentExport: "default" });
+    expect(cardStory.synthesized).toEqual({ componentExport: "default" });
   });
 
-  it("returns story iframe HTML for an auto-synthesized story id", async () => {
+  it("returns story iframe HTML for a synthesized story id", async () => {
     const response = await fetch(`${baseUrl}/__story/components-button--button`);
     expect(response.status).toBe(200);
     const html = await response.text();

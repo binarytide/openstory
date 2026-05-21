@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { synthesizeStoryEntry } from "../../src/plugin/virtual-modules.js";
 import type { Framework, ManifestStory } from "../../src/types.js";
 
-const baseAutoStory: ManifestStory = {
+const baseSynthesizedStory: ManifestStory = {
   id: "components-button--button",
   name: "Button",
   title: "Components/Button",
@@ -12,11 +12,11 @@ const baseAutoStory: ManifestStory = {
   argTypes: {},
   initialArgs: {},
   parameters: {},
-  tags: ["auto"],
+  tags: ["components"],
   hasPlay: false,
   hasBeforeEach: false,
   hasRender: true,
-  auto: { componentExport: "Button" },
+  synthesized: { componentExport: "Button" },
 };
 
 const FRAMEWORK_RENDER_EXPECTATIONS: Record<Framework, { importLine: RegExp; render: RegExp }> = {
@@ -38,11 +38,11 @@ const FRAMEWORK_RENDER_EXPECTATIONS: Record<Framework, { importLine: RegExp; ren
   },
 };
 
-describe("synthesizeStoryEntry - auto stories", () => {
+describe("synthesizeStoryEntry - synthesized component stories", () => {
   for (const framework of Object.keys(FRAMEWORK_RENDER_EXPECTATIONS) as Framework[]) {
     it(`emits a render function for ${framework}`, () => {
       const entry = synthesizeStoryEntry({
-        story: baseAutoStory,
+        story: baseSynthesizedStory,
         framework,
         previewPath: undefined,
         storyAbsolutePath: "/abs/src/components/Button.tsx",
@@ -63,7 +63,7 @@ describe("synthesizeStoryEntry - auto stories", () => {
 
   it("references module.default for default-export components", () => {
     const entry = synthesizeStoryEntry({
-      story: { ...baseAutoStory, auto: { componentExport: "default" } },
+      story: { ...baseSynthesizedStory, synthesized: { componentExport: "default" } },
       framework: "react",
       previewPath: undefined,
       storyAbsolutePath: "/abs/src/Card.tsx",
@@ -73,7 +73,7 @@ describe("synthesizeStoryEntry - auto stories", () => {
 
   it("includes the preview import when a preview path is supplied", () => {
     const entry = synthesizeStoryEntry({
-      story: baseAutoStory,
+      story: baseSynthesizedStory,
       framework: "react",
       previewPath: "/abs/preview.tsx",
       storyAbsolutePath: "/abs/src/components/Button.tsx",
@@ -84,7 +84,7 @@ describe("synthesizeStoryEntry - auto stories", () => {
 
   it("skips the helper import line for Svelte", () => {
     const entry = synthesizeStoryEntry({
-      story: { ...baseAutoStory, auto: { componentExport: "default" } },
+      story: { ...baseSynthesizedStory, synthesized: { componentExport: "default" } },
       framework: "svelte",
       previewPath: undefined,
       storyAbsolutePath: "/abs/src/Counter.svelte",
@@ -96,9 +96,9 @@ describe("synthesizeStoryEntry - auto stories", () => {
 });
 
 describe("synthesizeStoryEntry - regular stories", () => {
-  it("keeps emitting the original storyModule import for non-auto stories", () => {
+  it("keeps emitting the original storyModule import for non-synthesized stories", () => {
     const entry = synthesizeStoryEntry({
-      story: { ...baseAutoStory, auto: undefined, exportName: "Primary" },
+      story: { ...baseSynthesizedStory, synthesized: undefined, exportName: "Primary" },
       framework: "react",
       previewPath: undefined,
       storyAbsolutePath: "/abs/src/components/Button.stories.tsx",

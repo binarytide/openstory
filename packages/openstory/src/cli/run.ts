@@ -5,9 +5,8 @@ import {
   OpenstoryCliUnknownCommandError,
   OpenstoryError,
 } from "../errors.js";
-import type { OpenstoryAutoOption } from "../plugin/index.js";
+import type { OpenstoryComponentsOption } from "../plugin/index.js";
 import type { Framework } from "../types.js";
-import { runAuto } from "./auto.js";
 import { runBuild } from "./build.js";
 import { runDev } from "./dev.js";
 import { runInit } from "./init.js";
@@ -15,7 +14,7 @@ import { runInspect } from "./inspect.js";
 import { runList } from "./list.js";
 import { runPreview } from "./preview.js";
 
-const KNOWN_COMMANDS = ["dev", "build", "preview", "init", "auto", "list", "inspect"] as const;
+const KNOWN_COMMANDS = ["dev", "build", "preview", "init", "list", "inspect"] as const;
 type Command = (typeof KNOWN_COMMANDS)[number];
 
 const isKnownCommand = (value: string): value is Command =>
@@ -28,11 +27,10 @@ const HELP_TEXT = [
   "  openstory <command> [options]",
   "",
   "Commands:",
-  "  dev        start the dev server (--auto to synthesize stories from components)",
-  "  build      build a static deployable site (--auto to include synthesized stories)",
+  "  dev        start the dev server",
+  "  build      build a static deployable site",
   "  preview    serve the built site",
   "  init       scaffold preview + vite config (react|solid|vue|svelte)",
-  "  auto       scan repo for components and write stories files to disk",
   "  list       print manifest (--json for raw)",
   "  inspect    print details for one story (--json for raw)",
   "",
@@ -40,11 +38,15 @@ const HELP_TEXT = [
   "  --version  print version",
   "  --help     show this message",
   "",
+  "Component-driven stories (synthesized in memory, no files on disk):",
+  "  --components                       enable on dev/build",
+  "  --components-include <glob>        custom component glob (repeatable)",
+  "  --components-ignore <glob>         additional ignore glob (repeatable)",
+  "",
   "Examples:",
-  "  openstory dev --auto                    # ephemeral stories for every component",
-  '  openstory dev --auto --auto-components "src/ui/**/*.tsx"',
-  "  openstory build --auto --out dist",
-  '  openstory auto "src/**/*.tsx"           # materialize stories files on disk',
+  "  openstory dev --components",
+  '  openstory dev --components --components-include "src/ui/**/*.tsx"',
+  "  openstory build --components --out dist",
   "",
 ].join("\n");
 
@@ -63,18 +65,18 @@ const collectStringFlag = (value: unknown): string[] => {
   return [];
 };
 
-const parseAutoFlag = (
+const parseComponentsFlag = (
   parsedArgs: Record<string, unknown>,
-): boolean | OpenstoryAutoOption | undefined => {
-  const autoFlag = Boolean(parsedArgs["auto"]);
-  const componentGlobs = collectStringFlag(parsedArgs["auto-components"]);
-  const ignoreGlobs = collectStringFlag(parsedArgs["auto-ignore"]);
-  if (!autoFlag && componentGlobs.length === 0 && ignoreGlobs.length === 0) {
+): boolean | OpenstoryComponentsOption | undefined => {
+  const componentsFlag = Boolean(parsedArgs["components"]);
+  const includeGlobs = collectStringFlag(parsedArgs["components-include"]);
+  const ignoreGlobs = collectStringFlag(parsedArgs["components-ignore"]);
+  if (!componentsFlag && includeGlobs.length === 0 && ignoreGlobs.length === 0) {
     return undefined;
   }
-  if (componentGlobs.length === 0 && ignoreGlobs.length === 0) return true;
-  const option: OpenstoryAutoOption = {};
-  if (componentGlobs.length > 0) option.components = componentGlobs;
+  if (includeGlobs.length === 0 && ignoreGlobs.length === 0) return true;
+  const option: OpenstoryComponentsOption = {};
+  if (includeGlobs.length > 0) option.include = includeGlobs;
   if (ignoreGlobs.length > 0) option.ignore = ignoreGlobs;
   return option;
 };
@@ -93,7 +95,7 @@ export const run = async (argv: string[]): Promise<void> => {
 
   const projectRoot = process.cwd();
   const parsedArgs = mri(rest, {
-    boolean: ["json", "force", "open", "dry-run", "auto"],
+    boolean: ["json", "force", "open", "components"],
   });
 
   try {
@@ -111,7 +113,7 @@ export const run = async (argv: string[]): Promise<void> => {
           host,
           open,
           framework: parseFramework(parsedArgs["framework"]),
-          auto: parseAutoFlag(parsedArgs),
+          components: parseComponentsFlag(parsedArgs),
         });
         return;
       }
@@ -120,7 +122,7 @@ export const run = async (argv: string[]): Promise<void> => {
           outDir: String(parsedArgs["out"] ?? "dist"),
           base: String(parsedArgs["base"] ?? "/"),
           framework: parseFramework(parsedArgs["framework"]),
-          auto: parseAutoFlag(parsedArgs),
+          components: parseComponentsFlag(parsedArgs),
         });
         return;
       }
@@ -134,31 +136,6 @@ export const run = async (argv: string[]): Promise<void> => {
         const framework = parseFramework(parsedArgs["framework"]);
         const force = Boolean(parsedArgs["force"]);
         await runInit(projectRoot, { framework, force });
-        return;
-      }
-      case "auto": {
-        const positionalGlobs = parsedArgs._.filter(
-          (value): value is string => typeof value === "string" && value.length > 0,
-        );
-        const ignoreFlag = parsedArgs["ignore"];
-        const ignoreGlobs = Array.isArray(ignoreFlag)
-          ? ignoreFlag.filter((value): value is string => typeof value === "string")
-          : typeof ignoreFlag === "string"
-            ? [ignoreFlag]
-            : [];
-        const outDir =
-          typeof parsedArgs["out"] === "string" && parsedArgs["out"].length > 0
-            ? parsedArgs["out"]
-            : undefined;
-        await runAuto(projectRoot, {
-          globs: positionalGlobs,
-          framework: parseFramework(parsedArgs["framework"]),
-          outDir,
-          force: Boolean(parsedArgs["force"]),
-          dryRun: Boolean(parsedArgs["dry-run"]),
-          json: Boolean(parsedArgs["json"]),
-          ignore: ignoreGlobs,
-        });
         return;
       }
       case "list": {
