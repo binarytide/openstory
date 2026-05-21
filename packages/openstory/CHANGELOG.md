@@ -1,5 +1,11 @@
 # openstory
 
+## 0.0.5
+
+### Patch Changes
+
+- Fix `openstory build` not linking the CSS extracted from story dependencies. Vite was emitting `dist/assets/*.css` (e.g. the styles `import`ed from `preview.tsx`) but the per-story `index.html` only referenced `entry.js`, so the iframe loaded unstyled. The build now enables vite's `build.manifest`, walks each entry's import graph from the emitted manifest, and injects `<link rel="stylesheet">` tags for every transitively-imported CSS asset into the story HTML.
+
 ## 0.0.4
 
 ### Patch Changes
