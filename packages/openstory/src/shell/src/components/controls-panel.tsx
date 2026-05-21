@@ -165,7 +165,7 @@ export const ControlsPanel = ({ story, args, onChange, onReset }: ControlsPanelP
           return (
             <div
               key={argType.name}
-              className="grid grid-cols-[140px_1fr] items-center gap-3 px-3 py-2"
+              className="flex flex-col gap-1.5 px-3 py-2 sm:grid sm:grid-cols-[140px_1fr] sm:items-center sm:gap-3"
             >
               <Label
                 htmlFor={`arg-${argType.name}`}
@@ -173,7 +173,7 @@ export const ControlsPanel = ({ story, args, onChange, onReset }: ControlsPanelP
               >
                 {argType.name}
               </Label>
-              <div id={`arg-${argType.name}`}>
+              <div id={`arg-${argType.name}`} className="min-w-0">
                 <ControlInput
                   argType={argType}
                   value={currentValue}

@@ -5,15 +5,20 @@ import { StoryTree } from "@/components/story-tree";
 import { TopBar } from "@/components/top-bar";
 import { Separator } from "@/components/ui/separator";
 import {
+  CONTROLS_PANEL_HEIGHT_PX,
+  CONTROLS_PANEL_MOBILE_HEIGHT_PX,
   KEYBOARD_RELOAD,
   KEYBOARD_TOGGLE_NAV,
   KEYBOARD_TOGGLE_THEME,
+  MOBILE_BREAKPOINT_PX,
+  SIDEBAR_WIDTH_PX,
   STORAGE_KEY_NAV_COLLAPSED,
 } from "@/lib/constants";
 import type { ManifestStory } from "@/lib/types";
 import { buildStoryIframeUrl, readUrlState, writeUrlState } from "@/lib/url-state";
 import { cn } from "@/lib/utils";
 import { useIframeComms } from "@/state/use-iframe-comms";
+import { useIsMobile } from "@/state/use-is-mobile";
 import { useManifest } from "@/state/use-manifest";
 import { useTheme } from "@/state/use-theme";
 
@@ -22,9 +27,15 @@ const readNavCollapsed = (): boolean => {
   return localStorage.getItem(STORAGE_KEY_NAV_COLLAPSED) === "true";
 };
 
+const getInitialMobileCollapsed = (): boolean => {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX - 1}px)`).matches;
+};
+
 export const App = () => {
   const { manifest, error, isLoading } = useManifest();
   const theme = useTheme();
+  const isMobile = useIsMobile();
 
   const initialUrlState = useMemo(() => readUrlState(), []);
   const [selectedStoryId, setSelectedStoryId] = useState<string | undefined>(
@@ -32,10 +43,21 @@ export const App = () => {
   );
   const [globals, setGlobals] = useState<Record<string, unknown>>(initialUrlState.globals);
   const [args, setArgs] = useState<Record<string, unknown>>(initialUrlState.args);
-  const [isNavCollapsed, setIsNavCollapsed] = useState<boolean>(readNavCollapsed);
+  const [isNavCollapsed, setIsNavCollapsed] = useState<boolean>(
+    () => readNavCollapsed() || getInitialMobileCollapsed(),
+  );
   const [iframeReloadToken, setIframeReloadToken] = useState(0);
+  const hasUserToggledNavRef = useRef<boolean>(false);
+  const previousIsMobileRef = useRef<boolean>(isMobile);
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  useEffect(() => {
+    if (previousIsMobileRef.current === isMobile) return;
+    previousIsMobileRef.current = isMobile;
+    if (hasUserToggledNavRef.current) return;
+    setIsNavCollapsed(isMobile);
+  }, [isMobile]);
 
   useEffect(() => {
     if (!manifest) return;
@@ -72,9 +94,21 @@ export const App = () => {
 
   const comms = useIframeComms(iframeRef, selectedStoryId);
 
-  const handleSelect = useCallback((storyId: string) => {
-    setSelectedStoryId(storyId);
-    setArgs({});
+  const handleSelect = useCallback(
+    (storyId: string) => {
+      setSelectedStoryId(storyId);
+      setArgs({});
+      if (isMobile) {
+        hasUserToggledNavRef.current = true;
+        setIsNavCollapsed(true);
+      }
+    },
+    [isMobile],
+  );
+
+  const handleToggleNav = useCallback(() => {
+    hasUserToggledNavRef.current = true;
+    setIsNavCollapsed((previous) => !previous);
   }, []);
 
   const handleGlobalChange = useCallback(
@@ -118,13 +152,13 @@ export const App = () => {
       }
       if (event.key === KEYBOARD_TOGGLE_NAV) {
         event.preventDefault();
-        setIsNavCollapsed((previous) => !previous);
+        handleToggleNav();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [theme]);
+  }, [theme, handleToggleNav]);
 
   if (error) {
     return (
@@ -142,6 +176,9 @@ export const App = () => {
     );
   }
 
+  const isSidebarVisible = !isNavCollapsed;
+  const controlsHeight = isMobile ? CONTROLS_PANEL_MOBILE_HEIGHT_PX : CONTROLS_PANEL_HEIGHT_PX;
+
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <TopBar
@@ -149,19 +186,48 @@ export const App = () => {
         globals={globals}
         onGlobalChange={handleGlobalChange}
         isNavCollapsed={isNavCollapsed}
-        onToggleNav={() => setIsNavCollapsed((previous) => !previous)}
+        onToggleNav={handleToggleNav}
       />
-      <div className="flex min-h-0 flex-1">
-        <aside
-          className={cn(
-            "flex shrink-0 flex-col border-r border-border bg-background transition-[width] duration-200 ease-[var(--ease-out)]",
-            isNavCollapsed ? "w-0 overflow-hidden" : "w-72",
-          )}
-        >
-          <div className="min-h-0 flex-1">
-            <StoryTree manifest={manifest} selectedId={selectedStoryId} onSelect={handleSelect} />
-          </div>
-        </aside>
+      <div className="relative flex min-h-0 flex-1">
+        {isMobile ? (
+          <>
+            {isSidebarVisible ? (
+              <button
+                type="button"
+                aria-label="Close sidebar"
+                onClick={handleToggleNav}
+                className="absolute inset-0 z-10 bg-foreground/30 backdrop-blur-[1px]"
+              />
+            ) : null}
+            <aside
+              aria-hidden={!isSidebarVisible}
+              style={{ width: `${SIDEBAR_WIDTH_PX}px` }}
+              className={cn(
+                "absolute inset-y-0 left-0 z-20 flex max-w-[85vw] flex-col border-r border-border bg-background shadow-xl transition-transform duration-200 ease-[var(--ease-out)]",
+                isSidebarVisible ? "translate-x-0" : "-translate-x-full",
+              )}
+            >
+              <div className="min-h-0 flex-1">
+                <StoryTree
+                  manifest={manifest}
+                  selectedId={selectedStoryId}
+                  onSelect={handleSelect}
+                />
+              </div>
+            </aside>
+          </>
+        ) : (
+          <aside
+            className={cn(
+              "flex shrink-0 flex-col border-r border-border bg-background transition-[width] duration-200 ease-[var(--ease-out)]",
+              isNavCollapsed ? "w-0 overflow-hidden" : "w-72",
+            )}
+          >
+            <div className="min-h-0 flex-1">
+              <StoryTree manifest={manifest} selectedId={selectedStoryId} onSelect={handleSelect} />
+            </div>
+          </aside>
+        )}
         <main className="flex min-w-0 flex-1 flex-col">
           <div className="min-h-0 flex-1">
             <Canvas
@@ -175,7 +241,10 @@ export const App = () => {
           {hasControls ? (
             <>
               <Separator />
-              <div className="h-48 shrink-0 overflow-hidden bg-background">
+              <div
+                style={{ height: `${controlsHeight}px` }}
+                className="shrink-0 overflow-hidden bg-background"
+              >
                 <ControlsPanel
                   story={selectedStory}
                   args={args}

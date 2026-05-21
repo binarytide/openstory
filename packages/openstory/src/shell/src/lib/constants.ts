@@ -17,3 +17,8 @@ export const KEYBOARD_SHOW_HELP = "?";
 export const KEYBOARD_FOCUS_SEARCH = "/";
 
 export const PRINT_VERSION = "0.0.1";
+
+export const MOBILE_BREAKPOINT_PX = 768;
+export const CONTROLS_PANEL_HEIGHT_PX = 192;
+export const CONTROLS_PANEL_MOBILE_HEIGHT_PX = 256;
+export const SIDEBAR_WIDTH_PX = 288;
