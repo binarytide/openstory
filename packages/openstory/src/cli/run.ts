@@ -6,6 +6,7 @@ import {
   OpenstoryError,
 } from "../errors.js";
 import type { Framework } from "../types.js";
+import { runAuto } from "./auto.js";
 import { runBuild } from "./build.js";
 import { runDev } from "./dev.js";
 import { runInit } from "./init.js";
@@ -13,7 +14,7 @@ import { runInspect } from "./inspect.js";
 import { runList } from "./list.js";
 import { runPreview } from "./preview.js";
 
-const KNOWN_COMMANDS = ["dev", "build", "preview", "init", "list", "inspect"] as const;
+const KNOWN_COMMANDS = ["dev", "build", "preview", "init", "auto", "list", "inspect"] as const;
 type Command = (typeof KNOWN_COMMANDS)[number];
 
 const isKnownCommand = (value: string): value is Command =>
@@ -30,12 +31,19 @@ const HELP_TEXT = [
   "  build      build a static deployable site",
   "  preview    serve the built site",
   "  init       scaffold preview + vite config (react|solid|vue|svelte)",
+  "  auto       scan repo for components and scaffold stories for them",
   "  list       print manifest (--json for raw)",
   "  inspect    print details for one story (--json for raw)",
   "",
   "Flags:",
   "  --version  print version",
   "  --help     show this message",
+  "",
+  "Examples:",
+  "  openstory auto                          # detect framework + scan default globs",
+  '  openstory auto "src/**/*.tsx"           # restrict to a custom glob',
+  '  openstory auto "src/ui/*.tsx" "src/forms/*.tsx" --dry-run',
+  "  openstory auto --out stories --force",
   "",
 ].join("\n");
 
@@ -59,7 +67,9 @@ export const run = async (argv: string[]): Promise<void> => {
   }
 
   const projectRoot = process.cwd();
-  const parsedArgs = mri(rest, { boolean: ["json", "force", "open"] });
+  const parsedArgs = mri(rest, {
+    boolean: ["json", "force", "open", "dry-run"],
+  });
 
   try {
     if (!isKnownCommand(command)) {
@@ -92,6 +102,31 @@ export const run = async (argv: string[]): Promise<void> => {
         const framework = parseFramework(parsedArgs["framework"]);
         const force = Boolean(parsedArgs["force"]);
         await runInit(projectRoot, { framework, force });
+        return;
+      }
+      case "auto": {
+        const positionalGlobs = parsedArgs._.filter(
+          (value): value is string => typeof value === "string" && value.length > 0,
+        );
+        const ignoreFlag = parsedArgs["ignore"];
+        const ignoreGlobs = Array.isArray(ignoreFlag)
+          ? ignoreFlag.filter((value): value is string => typeof value === "string")
+          : typeof ignoreFlag === "string"
+            ? [ignoreFlag]
+            : [];
+        const outDir =
+          typeof parsedArgs["out"] === "string" && parsedArgs["out"].length > 0
+            ? parsedArgs["out"]
+            : undefined;
+        await runAuto(projectRoot, {
+          globs: positionalGlobs,
+          framework: parseFramework(parsedArgs["framework"]),
+          outDir,
+          force: Boolean(parsedArgs["force"]),
+          dryRun: Boolean(parsedArgs["dry-run"]),
+          json: Boolean(parsedArgs["json"]),
+          ignore: ignoreGlobs,
+        });
         return;
       }
       case "list": {

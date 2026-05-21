@@ -158,8 +158,37 @@ openstory dev        start the dev server
 openstory build      write a static deployable site to dist/
 openstory preview    serve the built site
 openstory init       scaffold preview + vite config (react|solid|vue|svelte)
+openstory auto       scan repo for components and scaffold stories for them
 openstory list       print manifest (--json for raw)
 openstory inspect    print details for one story (--json for raw)
+```
+
+### `openstory auto`
+
+`auto` resolves every component in your repository (not just files that already have stories) and generates a CSF 3 stories file for each one. Use this to bootstrap a "book" from an existing component library.
+
+```bash
+pnpm exec openstory auto                     # detect framework + scan default globs
+pnpm exec openstory auto "src/**/*.tsx"      # restrict to a custom glob
+pnpm exec openstory auto "src/ui/*.tsx" "src/forms/*.tsx" --dry-run
+pnpm exec openstory auto --out stories --force
+```
+
+By default, `auto` writes the generated `*.stories.{tsx,ts}` files alongside each detected component. Existing stories files are preserved unless you pass `--force`. Detection rules:
+
+- React / Solid: any PascalCase named export, plus default exports, in `.tsx`/`.jsx` files.
+- Vue: each `.vue` SFC, named from its filename.
+- Svelte: each `.svelte` component, named from its filename.
+
+Flags:
+
+```
+--framework <name>   react|solid|vue|svelte (auto-detected by default)
+--out <dir>          write all stories to <dir> instead of next to each component
+--ignore <glob>      additional ignore glob (repeatable)
+--force              overwrite existing stories files
+--dry-run            print the plan without writing files
+--json               machine-readable summary
 ```
 
 See [`packages/openstory/src/types.ts`](https://github.com/millionco/openstory/blob/main/packages/openstory/src/types.ts) for the full `Meta`, `StoryObj`, `Preview`, `Decorator`, `PlayFunction`, and `OpenstoryRenderer` interfaces.

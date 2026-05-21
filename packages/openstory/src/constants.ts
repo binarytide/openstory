@@ -17,6 +17,22 @@ export const DEFAULT_IGNORE_GLOBS = [
   "**/openstory-static/**",
 ];
 
+export const DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK: Record<string, string[]> = {
+  react: ["**/*.{tsx,jsx}"],
+  solid: ["**/*.{tsx,jsx}"],
+  vue: ["**/*.vue"],
+  svelte: ["**/*.svelte"],
+};
+
+export const AUTO_IGNORE_GLOBS = [
+  "**/*.stories.{ts,tsx,js,jsx}",
+  "**/*.test.{ts,tsx,js,jsx}",
+  "**/*.spec.{ts,tsx,js,jsx}",
+  "**/preview.{ts,tsx,js,jsx}",
+  "**/vite.config.{ts,js,mts,mjs}",
+  "**/vitest.config.{ts,js,mts,mjs}",
+];
+
 export const PREVIEW_FILE_LOCATIONS = ["preview", "src/preview"];
 export const PREVIEW_FILE_EXTENSIONS = [".tsx", ".ts", ".jsx", ".js"];
 
