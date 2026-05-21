@@ -9,6 +9,7 @@ import {
 import { OpenstoryCliNoComponentsFoundError } from "../errors.js";
 import { detectFramework } from "../plugin/framework-detection.js";
 import type { Framework } from "../types.js";
+import { deriveTitleFromPath } from "../utils/derive-title-from-path.js";
 import { type DetectedComponent, findComponentsInFile } from "../utils/find-components.js";
 
 export interface AutoOptions {
@@ -40,28 +41,6 @@ const STORY_EXTENSION_BY_FRAMEWORK: Record<Framework, string> = {
   solid: ".stories.tsx",
   vue: ".stories.ts",
   svelte: ".stories.ts",
-};
-
-const titleSegmentFromSegment = (segment: string): string => {
-  const cleaned = segment.replace(/[^A-Za-z0-9]+/g, " ").trim();
-  if (cleaned === "") return "";
-  return cleaned
-    .split(/\s+/)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("");
-};
-
-const deriveTitleFromRelativePath = (relativePath: string): string => {
-  const withoutExtension = relativePath.replace(/\.[^./]+$/, "");
-  const normalized = withoutExtension.split("\\").join("/");
-  const segments = normalized
-    .split("/")
-    .filter((segment) => segment.length > 0 && segment !== "src");
-  if (segments.length === 0) return "Components";
-  return segments
-    .map((segment) => titleSegmentFromSegment(segment))
-    .filter((segment) => segment.length > 0)
-    .join("/");
 };
 
 const buildReactStoryFile = (
@@ -213,7 +192,7 @@ export const runAuto = async (projectRoot: string, options: AutoOptions): Promis
 
     const storyFilePath = storyTargetPath(options, projectRoot, componentSourcePath, framework);
     const relativeSource = relative(projectRoot, componentSourcePath).split("\\").join("/");
-    const title = deriveTitleFromRelativePath(relativeSource);
+    const title = deriveTitleFromPath(relativeSource);
 
     const existing = await tryReadFile(storyFilePath);
     if (existing !== undefined && !options.force) {

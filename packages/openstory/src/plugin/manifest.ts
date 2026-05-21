@@ -8,6 +8,7 @@ import { OpenstoryCsfDuplicateStoryIdError } from "../errors.js";
 import { parseCsf, type ParsedStory } from "../csf/parser.js";
 import { parsePreview } from "../csf/preview-parser.js";
 import type { Framework, GlobalType, Manifest, ManifestStory, StoryParameters } from "../types.js";
+import { AutoStoriesBuilder, type AutoStoriesConfig } from "./auto-stories.js";
 
 export interface BuildManifestOptions {
   projectRoot: string;
@@ -16,6 +17,7 @@ export interface BuildManifestOptions {
   framework: Framework;
   previewPath?: string;
   devServer?: ViteDevServer;
+  auto?: AutoStoriesConfig;
 }
 
 export interface ManifestCacheEntry {
@@ -67,12 +69,16 @@ const parsedStoryToManifestStory = (
 export class ManifestBuilder {
   private cache = new Map<string, ManifestCacheEntry>();
   private previewCache: { mtime: number; meta: PreviewMetadata } | undefined;
+  private autoBuilder: AutoStoriesBuilder | undefined;
   private devServer: ViteDevServer | undefined;
   private readonly options: BuildManifestOptions;
 
   constructor(options: BuildManifestOptions) {
     this.options = options;
     this.devServer = options.devServer;
+    if (options.auto) {
+      this.autoBuilder = new AutoStoriesBuilder();
+    }
   }
 
   attachDevServer = (server: ViteDevServer): void => {
@@ -83,12 +89,14 @@ export class ManifestBuilder {
     if (absolutePath === undefined) {
       this.cache.clear();
       this.previewCache = undefined;
+      this.autoBuilder?.invalidate();
       return;
     }
     this.cache.delete(absolutePath);
     if (this.options.previewPath === absolutePath) {
       this.previewCache = undefined;
     }
+    this.autoBuilder?.invalidate(absolutePath);
   };
 
   build = async (): Promise<Manifest> => {
@@ -104,6 +112,19 @@ export class ManifestBuilder {
     for (const absolutePath of storyFiles) {
       const cacheEntry = await this.parseStoryFile(absolutePath);
       allStories.push(...cacheEntry.stories);
+    }
+
+    if (this.autoBuilder && this.options.auto) {
+      const userStoryIds = new Set(allStories.map((story) => story.id));
+      const autoStories = await this.autoBuilder.build({
+        projectRoot: this.options.projectRoot,
+        framework: this.options.framework,
+        config: this.options.auto,
+      });
+      for (const autoStory of autoStories) {
+        if (userStoryIds.has(autoStory.id)) continue;
+        allStories.push(autoStory);
+      }
     }
 
     const importPathsById = new Map<string, string[]>();

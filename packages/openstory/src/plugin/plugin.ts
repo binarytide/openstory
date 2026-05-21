@@ -6,6 +6,8 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Connect, Plugin, ViteDevServer } from "vite";
 
 import {
+  AUTO_IGNORE_GLOBS,
+  DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK,
   DEFAULT_IGNORE_GLOBS,
   DEFAULT_STORY_GLOBS,
   MANIFEST_PATH,
@@ -15,6 +17,7 @@ import {
 import { OpenstoryStoryNotFoundError } from "../errors.js";
 import type { Framework, Manifest, ManifestStory } from "../types.js";
 
+import { type AutoStoriesConfig } from "./auto-stories.js";
 import { detectFramework } from "./framework-detection.js";
 import { ManifestBuilder } from "./manifest.js";
 import { findPreviewFile } from "./preview-discovery.js";
@@ -31,6 +34,11 @@ export interface OpenstoryUiOptions {
   theme?: "dark" | "light" | "system";
 }
 
+export interface OpenstoryAutoOption {
+  components?: string | string[];
+  ignore?: string[];
+}
+
 export interface OpenstoryOptions {
   stories?: string | string[];
   ignore?: string[];
@@ -38,6 +46,7 @@ export interface OpenstoryOptions {
   preview?: string;
   ui?: OpenstoryUiOptions;
   port?: number;
+  auto?: boolean | OpenstoryAutoOption;
 }
 
 export const defineOpenstory = (options: OpenstoryOptions): OpenstoryOptions => options;
@@ -82,6 +91,28 @@ const sendErrorResponse = (response: ServerResponse, error: unknown): void => {
 const normalizeStories = (stories: OpenstoryOptions["stories"]): string[] => {
   if (!stories) return DEFAULT_STORY_GLOBS;
   return Array.isArray(stories) ? stories : [stories];
+};
+
+const normalizeAutoOption = (
+  option: OpenstoryOptions["auto"],
+  framework: Framework,
+): AutoStoriesConfig | undefined => {
+  if (!option) return undefined;
+  const componentSource =
+    typeof option === "object" && option.components !== undefined
+      ? option.components
+      : DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK[framework];
+  const componentGlobs = Array.isArray(componentSource)
+    ? componentSource
+    : componentSource !== undefined
+      ? [componentSource]
+      : [];
+  const userIgnoreGlobs =
+    typeof option === "object" && Array.isArray(option.ignore) ? option.ignore : [];
+  return {
+    componentGlobs,
+    ignoreGlobs: [...DEFAULT_IGNORE_GLOBS, ...AUTO_IGNORE_GLOBS, ...userIgnoreGlobs],
+  };
 };
 
 const resolvePathOption = (projectRoot: string, value: string): string =>
@@ -208,6 +239,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
   let projectRoot = process.cwd();
   let framework: Framework = "react";
   let previewPath: string | undefined;
+  let autoConfig: AutoStoriesConfig | undefined;
   let builder: ManifestBuilder;
   let snapshotPromise: Promise<ManifestSnapshot> | undefined;
 
@@ -241,6 +273,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
       previewPath = userOptions.preview
         ? resolvePathOption(projectRoot, userOptions.preview)
         : await findPreviewFile(projectRoot);
+      autoConfig = normalizeAutoOption(userOptions.auto, framework);
 
       builder = new ManifestBuilder({
         projectRoot,
@@ -248,6 +281,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
         ignore: ignoreGlobs,
         framework,
         previewPath,
+        auto: autoConfig,
       });
     },
 
@@ -264,6 +298,9 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
 
     handleHotUpdate: (ctx) => {
       if (/\.stories\.[tj]sx?$/.test(ctx.file)) {
+        invalidateManifest(ctx.file);
+      }
+      if (autoConfig) {
         invalidateManifest(ctx.file);
       }
       if (previewPath && ctx.file === previewPath) {

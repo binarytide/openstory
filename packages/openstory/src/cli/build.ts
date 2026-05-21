@@ -5,15 +5,18 @@ import { OpenstoryBuildFailedError } from "../errors.js";
 import { ManifestBuilder } from "../plugin/manifest.js";
 import { detectFramework } from "../plugin/framework-detection.js";
 import { findPreviewFile } from "../plugin/preview-discovery.js";
-import { openstory } from "../plugin/index.js";
+import { openstory, type OpenstoryAutoOption } from "../plugin/index.js";
 import {
+  AUTO_IGNORE_GLOBS,
+  DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK,
+  DEFAULT_IGNORE_GLOBS,
+  DEFAULT_STORY_GLOBS,
   OPENSTORY_DEFAULT_LAYOUT,
   OPENSTORY_LAYOUT_CLASSES,
   OPENSTORY_ROOT_ELEMENT_ID,
   VIRTUAL_STORY_ENTRY_ID,
-  DEFAULT_IGNORE_GLOBS,
-  DEFAULT_STORY_GLOBS,
 } from "../constants.js";
+import type { AutoStoriesConfig } from "../plugin/auto-stories.js";
 import { escapeAttribute } from "../utils/escape-attribute.js";
 import type { Framework, ManifestStory } from "../types.js";
 
@@ -48,7 +51,30 @@ export interface BuildOptions {
   outDir: string;
   base: string;
   framework?: Framework;
+  auto?: boolean | OpenstoryAutoOption;
 }
+
+const resolveAutoConfig = (
+  option: boolean | OpenstoryAutoOption | undefined,
+  framework: Framework,
+): AutoStoriesConfig | undefined => {
+  if (!option) return undefined;
+  const componentSource =
+    typeof option === "object" && option.components !== undefined
+      ? option.components
+      : DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK[framework];
+  const componentGlobs = Array.isArray(componentSource)
+    ? componentSource
+    : componentSource !== undefined
+      ? [componentSource]
+      : [];
+  const userIgnoreGlobs =
+    typeof option === "object" && Array.isArray(option.ignore) ? option.ignore : [];
+  return {
+    componentGlobs,
+    ignoreGlobs: [...DEFAULT_IGNORE_GLOBS, ...AUTO_IGNORE_GLOBS, ...userIgnoreGlobs],
+  };
+};
 
 const SHELL_DIST_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "shell");
 
@@ -108,6 +134,7 @@ ${cssLinks}
 export const runBuild = async (projectRoot: string, options: BuildOptions): Promise<void> => {
   const framework = options.framework ?? (await detectFramework(projectRoot));
   const previewPath = await findPreviewFile(projectRoot);
+  const autoConfig = resolveAutoConfig(options.auto, framework);
 
   const builder = new ManifestBuilder({
     projectRoot,
@@ -115,6 +142,7 @@ export const runBuild = async (projectRoot: string, options: BuildOptions): Prom
     ignore: DEFAULT_IGNORE_GLOBS,
     framework,
     previewPath,
+    auto: autoConfig,
   });
 
   const manifest = await builder.build().catch((cause: unknown) => {
@@ -137,7 +165,7 @@ export const runBuild = async (projectRoot: string, options: BuildOptions): Prom
     root: projectRoot,
     base: options.base,
     logLevel: "warn",
-    plugins: [openstory({ framework, preview: previewPath })],
+    plugins: [openstory({ framework, preview: previewPath, auto: options.auto })],
     build: {
       outDir: absoluteOutDir,
       emptyOutDir: true,
@@ -192,7 +220,5 @@ export const runBuild = async (projectRoot: string, options: BuildOptions): Prom
 
   await cp(SHELL_DIST_DIR, absoluteOutDir, { recursive: true });
 
-  process.stdout.write(
-    `built ${manifest.stories.length} stories + shell to ${absoluteOutDir}\n`,
-  );
+  process.stdout.write(`built ${manifest.stories.length} stories + shell to ${absoluteOutDir}\n`);
 };

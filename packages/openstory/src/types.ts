@@ -25,6 +25,11 @@ export interface ManifestStory {
   hasPlay: boolean;
   hasBeforeEach: boolean;
   hasRender: boolean;
+  auto?: ManifestStoryAuto;
+}
+
+export interface ManifestStoryAuto {
+  componentExport: string;
 }
 
 export interface ArgTypes {

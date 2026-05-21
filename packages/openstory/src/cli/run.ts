@@ -5,6 +5,7 @@ import {
   OpenstoryCliUnknownCommandError,
   OpenstoryError,
 } from "../errors.js";
+import type { OpenstoryAutoOption } from "../plugin/index.js";
 import type { Framework } from "../types.js";
 import { runAuto } from "./auto.js";
 import { runBuild } from "./build.js";
@@ -27,11 +28,11 @@ const HELP_TEXT = [
   "  openstory <command> [options]",
   "",
   "Commands:",
-  "  dev        start the dev server",
-  "  build      build a static deployable site",
+  "  dev        start the dev server (--auto to synthesize stories from components)",
+  "  build      build a static deployable site (--auto to include synthesized stories)",
   "  preview    serve the built site",
   "  init       scaffold preview + vite config (react|solid|vue|svelte)",
-  "  auto       scan repo for components and scaffold stories for them",
+  "  auto       scan repo for components and write stories files to disk",
   "  list       print manifest (--json for raw)",
   "  inspect    print details for one story (--json for raw)",
   "",
@@ -40,10 +41,10 @@ const HELP_TEXT = [
   "  --help     show this message",
   "",
   "Examples:",
-  "  openstory auto                          # detect framework + scan default globs",
-  '  openstory auto "src/**/*.tsx"           # restrict to a custom glob',
-  '  openstory auto "src/ui/*.tsx" "src/forms/*.tsx" --dry-run',
-  "  openstory auto --out stories --force",
+  "  openstory dev --auto                    # ephemeral stories for every component",
+  '  openstory dev --auto --auto-components "src/ui/**/*.tsx"',
+  "  openstory build --auto --out dist",
+  '  openstory auto "src/**/*.tsx"           # materialize stories files on disk',
   "",
 ].join("\n");
 
@@ -52,6 +53,30 @@ const parseFramework = (value: unknown): Framework | undefined => {
     return value;
   }
   return undefined;
+};
+
+const collectStringFlag = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string" && item.length > 0);
+  }
+  if (typeof value === "string" && value.length > 0) return [value];
+  return [];
+};
+
+const parseAutoFlag = (
+  parsedArgs: Record<string, unknown>,
+): boolean | OpenstoryAutoOption | undefined => {
+  const autoFlag = Boolean(parsedArgs["auto"]);
+  const componentGlobs = collectStringFlag(parsedArgs["auto-components"]);
+  const ignoreGlobs = collectStringFlag(parsedArgs["auto-ignore"]);
+  if (!autoFlag && componentGlobs.length === 0 && ignoreGlobs.length === 0) {
+    return undefined;
+  }
+  if (componentGlobs.length === 0 && ignoreGlobs.length === 0) return true;
+  const option: OpenstoryAutoOption = {};
+  if (componentGlobs.length > 0) option.components = componentGlobs;
+  if (ignoreGlobs.length > 0) option.ignore = ignoreGlobs;
+  return option;
 };
 
 export const run = async (argv: string[]): Promise<void> => {
@@ -68,7 +93,7 @@ export const run = async (argv: string[]): Promise<void> => {
 
   const projectRoot = process.cwd();
   const parsedArgs = mri(rest, {
-    boolean: ["json", "force", "open", "dry-run"],
+    boolean: ["json", "force", "open", "dry-run", "auto"],
   });
 
   try {
@@ -81,7 +106,13 @@ export const run = async (argv: string[]): Promise<void> => {
         const port = Number(parsedArgs["port"] ?? DEFAULT_DEV_PORT);
         const host = String(parsedArgs["host"] ?? "localhost");
         const open = Boolean(parsedArgs["open"]);
-        await runDev({ port, host, open, framework: parseFramework(parsedArgs["framework"]) });
+        await runDev({
+          port,
+          host,
+          open,
+          framework: parseFramework(parsedArgs["framework"]),
+          auto: parseAutoFlag(parsedArgs),
+        });
         return;
       }
       case "build": {
@@ -89,6 +120,7 @@ export const run = async (argv: string[]): Promise<void> => {
           outDir: String(parsedArgs["out"] ?? "dist"),
           base: String(parsedArgs["base"] ?? "/"),
           framework: parseFramework(parsedArgs["framework"]),
+          auto: parseAutoFlag(parsedArgs),
         });
         return;
       }
