@@ -1,5 +1,5 @@
 import { type RefObject } from "react";
-import { AlertCircle, CheckCircle2, Loader2, Play } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { StoryStatus } from "@/lib/types";
@@ -11,46 +11,8 @@ interface CanvasProps {
   storyId: string | undefined;
 }
 
-const StatusBadge = ({ status }: { status: StoryStatus }) => {
-  if (status.error) {
-    return (
-      <Badge variant="destructive">
-        <AlertCircle className="h-3 w-3" />
-        Error
-      </Badge>
-    );
-  }
-  if (status.playStatus === "running") {
-    return (
-      <Badge>
-        <Loader2 className="h-3 w-3 animate-spin [animation-duration:700ms]" />
-        Play running
-      </Badge>
-    );
-  }
-  if (status.playStatus === "passed") {
-    return (
-      <Badge variant="success">
-        <CheckCircle2 className="h-3 w-3" />
-        Play passed
-      </Badge>
-    );
-  }
-  if (status.playStatus === "failed") {
-    return (
-      <Badge variant="destructive">
-        <AlertCircle className="h-3 w-3" />
-        Play failed
-      </Badge>
-    );
-  }
-  return (
-    <Badge>
-      <Play className="h-3 w-3" />
-      Ready
-    </Badge>
-  );
-};
+const hasFailure = (status: StoryStatus): boolean =>
+  Boolean(status.error) || status.playStatus === "failed";
 
 export const Canvas = ({ iframeRef, iframeSrc, status, storyId }: CanvasProps) => {
   if (!storyId) {
@@ -62,11 +24,7 @@ export const Canvas = ({ iframeRef, iframeSrc, status, storyId }: CanvasProps) =
   }
 
   return (
-    <div className="flex h-full flex-col bg-background">
-      <div className="flex items-center justify-between border-b border-border px-3 py-2">
-        <code className="text-xs text-muted-foreground">{storyId}</code>
-        <StatusBadge status={status} />
-      </div>
+    <div className="relative flex h-full flex-col bg-background">
       <div className="flex-1 overflow-hidden bg-muted/30">
         <iframe
           ref={iframeRef}
@@ -75,6 +33,14 @@ export const Canvas = ({ iframeRef, iframeSrc, status, storyId }: CanvasProps) =
           className={cn("h-full w-full border-0")}
         />
       </div>
+      {hasFailure(status) ? (
+        <div className="pointer-events-none absolute right-3 top-3">
+          <Badge variant="destructive" className="pointer-events-auto">
+            <AlertCircle className="h-3 w-3" />
+            {status.error ? "Error" : "Play failed"}
+          </Badge>
+        </div>
+      ) : null}
     </div>
   );
 };
