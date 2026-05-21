@@ -1,4 +1,4 @@
-# Ported tests — attribution
+# Ported tests: attribution
 
 The test files in this directory are forked from upstream projects under the MIT license.
 They serve as Openbook's CSF spec compatibility suite: passing them is part of the
@@ -21,7 +21,7 @@ include/exclude logic.
 - **License:** MIT
 - **Source:** <https://github.com/storybookjs/storybook>
 - **Files derived from upstream:**
-  - `csf-file.test.ts` (from `code/core/src/csf-tools/CsfFile.test.ts` — subset, adapted to Openbook's flatter parser output shape)
+  - `csf-file.test.ts` (from `code/core/src/csf-tools/CsfFile.test.ts`. Subset, adapted to Openbook's flatter parser output shape.)
 
 ## What "adapted" means
 
@@ -29,7 +29,7 @@ include/exclude logic.
 - Error message expectations updated to match Openbook's `OpenbookCsfXxxError` classes.
 - Storybook-internal cruft (`_metaAnnotations`, `_storyAnnotations`, `__stats`)
   dropped from assertions since Openbook's parser exposes a flatter, public-API-only shape.
-- Angular `@Component`-decorator edge cases dropped from `csf-file.test.ts` —
+- Angular `@Component`-decorator edge cases dropped from `csf-file.test.ts`;
   Openbook does not target Angular.
 - `enrichCsf` and `getStorySortParameter` tests are not ported since those features
   are deferred to v0.1.0.

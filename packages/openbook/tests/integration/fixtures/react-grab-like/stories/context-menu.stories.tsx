@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "openbook/solid";
-// @ts-expect-error — openbook/test ships no DTS by design.
+// @ts-expect-error: openbook/test ships no DTS by design.
 import { expect, waitFor } from "openbook/test";
 import { ContextMenu } from "react-grab/src/components/context-menu.js";
 import type { Position } from "react-grab/src/types.js";

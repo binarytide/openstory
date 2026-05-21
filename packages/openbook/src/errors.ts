@@ -43,7 +43,7 @@ export class OpenbookConfigMissingFrameworkError extends OpenbookConfigError {
     super(
       `Could not detect a framework. Found in package.json: ${
         detected.length > 0 ? detected.join(", ") : "none"
-      }. Install one of: react, solid-js — or set \`framework\` in openbook() options.`,
+      }. Install one of: react, solid-js, or set \`framework\` in openbook() options.`,
       { detected },
     );
   }
@@ -140,7 +140,7 @@ export class OpenbookCsfDuplicateStoryIdError extends OpenbookCsfError {
 export class OpenbookCsfInvalidTitleError extends OpenbookCsfError {
   override readonly code = "OpenbookCsfInvalidTitleError";
   constructor(filename: string, title: string) {
-    super(`${filename}: Invalid title "${title}" — must include alphanumeric characters.`, {
+    super(`${filename}: Invalid title "${title}". Must include alphanumeric characters.`, {
       filename,
       title,
     });
@@ -150,7 +150,7 @@ export class OpenbookCsfInvalidTitleError extends OpenbookCsfError {
 export class OpenbookCsfInvalidStoryNameError extends OpenbookCsfError {
   override readonly code = "OpenbookCsfInvalidStoryNameError";
   constructor(name: string) {
-    super(`Invalid story name "${name}" — must include alphanumeric characters.`, { name });
+    super(`Invalid story name "${name}". Must include alphanumeric characters.`, { name });
   }
 }
 
@@ -174,7 +174,7 @@ export class OpenbookCsfStoriesOfError extends OpenbookCsfError {
 export class OpenbookCsfParseError extends OpenbookCsfError {
   override readonly code = "OpenbookCsfParseError";
   constructor(filename: string, message: string) {
-    super(`${filename}: failed to parse — ${message}`, { filename, parseMessage: message });
+    super(`${filename}: failed to parse. ${message}`, { filename, parseMessage: message });
   }
 }
 

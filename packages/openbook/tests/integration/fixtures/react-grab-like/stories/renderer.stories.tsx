@@ -1,6 +1,6 @@
 import { createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
 import type { Meta, StoryContext, StoryObj } from "openbook/solid";
-// @ts-expect-error — openbook/test ships no DTS by design.
+// @ts-expect-error: openbook/test ships no DTS by design.
 import { expect, waitFor } from "openbook/test";
 import { ReactGrabRenderer } from "react-grab/src/components/renderer.js";
 import type { OverlayBounds } from "react-grab/src/types.js";

@@ -1,10 +1,10 @@
-// Minimal smoke story for Phase 3 — renders a Solid component without any
+// Minimal smoke story for Phase 3. Renders a Solid component without any
 // react-grab dependencies. Used to verify the boot + adapter pipeline before
 // the real react-grab stories come online in Phase 5/6.
 
 import type { Component } from "solid-js";
 import type { Meta, StoryObj } from "openbook/solid";
-// @ts-expect-error — openbook/test has no DTS by design.
+// @ts-expect-error: openbook/test has no DTS by design.
 import { expect, waitFor } from "openbook/test";
 
 interface ButtonProps {

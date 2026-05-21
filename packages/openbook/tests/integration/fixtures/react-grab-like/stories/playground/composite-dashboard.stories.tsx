@@ -74,7 +74,7 @@ const TABLE_ROWS: ReadonlyArray<RowData> = [
     email: "sam@acme.co",
     status: "invited",
     role: "Viewer",
-    lastActive: "—",
+    lastActive: "-",
   },
   {
     id: "4",

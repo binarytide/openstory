@@ -2,9 +2,9 @@
 
 [![version](https://img.shields.io/npm/v/openbook?style=flat&colorA=000000&colorB=000000)](https://npmjs.com/package/openbook)
 
-A lightweight, Vite-native [CSF 3](https://storybook.js.org/docs/api/csf) alternative to Storybook.
+Storybook for Agents.
 
-Openbook runs your existing stories on a **single Vite server** with **~10 dependencies** — no addons to install, no Webpack to wait on, sub-second cold start. Drop-in compatible types. Agent-first.
+Openbook is a drop-in replacement for Storybook. Your existing stories work as-is.
 
 > Openbook is in alpha (`0.0.x`). Any patch may break the public API.
 
@@ -16,7 +16,7 @@ Run this at your project root:
 pnpm exec openbook init
 ```
 
-`openbook init` scaffolds `preview` + `vite.config.ts` for the framework detected in your `package.json` (React, Solid, Vue, or Svelte). Then:
+`openbook init` scaffolds `preview` and `vite.config.ts` for the framework detected in your `package.json` (React, Solid, Vue, or Svelte). Then:
 
 ```bash
 pnpm exec openbook dev
@@ -30,7 +30,7 @@ Openbook turns your existing CSF 3 story files into a browsable component lab se
 2. Run `openbook dev`.
 3. Browse stories at `http://localhost:6006`.
 
-Stories use the same shape as Storybook — swap imports, drop addons:
+Stories use the same shape as Storybook. Swap imports, drop addons:
 
 ```tsx
 import type { Meta, StoryObj } from "openbook/react";
@@ -140,7 +140,7 @@ export default defineConfig({
 
 ## Migrate from Storybook
 
-Swap your story imports — `meta`, `decorators`, `parameters`, `globalTypes`, `initialGlobals`, and `play` functions keep the same shape:
+Swap your story imports. `meta`, `decorators`, `parameters`, `globalTypes`, `initialGlobals`, and `play` functions keep the same shape:
 
 ```diff
 - import type { Meta, StoryObj } from "@storybook/react";
@@ -149,7 +149,7 @@ Swap your story imports — `meta`, `decorators`, `parameters`, `globalTypes`, `
 + import { expect, waitFor } from "openbook/test";
 ```
 
-`preview.tsx` keeps the same shape too. No addon dependencies; the shell ships built-in.
+`preview.tsx` keeps the same shape too. No addon dependencies. The shell ships built-in.
 
 ## CLI
 

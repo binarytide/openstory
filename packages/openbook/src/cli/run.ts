@@ -20,7 +20,7 @@ const isKnownCommand = (value: string): value is Command =>
   (KNOWN_COMMANDS as readonly string[]).includes(value);
 
 const HELP_TEXT = [
-  "openbook — lightweight, Vite-native CSF 3 component lab",
+  "openbook: drop-in Storybook replacement for agents",
   "",
   "Usage:",
   "  openbook <command> [options]",

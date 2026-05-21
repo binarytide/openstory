@@ -98,7 +98,7 @@ export const runInit = async (projectRoot: string, options: InitOptions): Promis
     process.stdout.write(`created vite.config.ts\n`);
   } else {
     process.stdout.write(
-      `vite.config.ts exists — add the snippet below to your plugins array:\n\n` +
+      `vite.config.ts exists. Add the snippet below to your plugins array:\n\n` +
         `  import { openbook } from "openbook/plugin";\n` +
         `  plugins: [openbook({ framework: "${framework}" }), ...]\n`,
     );

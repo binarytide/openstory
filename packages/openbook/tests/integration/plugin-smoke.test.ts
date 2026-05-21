@@ -101,7 +101,7 @@ describe("plugin smoke: dev endpoints", () => {
   it("synthesizes a working virtual entry module via the html-proxy URL", async () => {
     // 1) Fetch the iframe HTML and pluck out the proxy script src.
     // Vite injects its own client script, so filter to the one Vite emitted from
-    // our inline `<script type="module">import 'virtual:...'` — its src will
+    // our inline `<script type="module">import 'virtual:...'`. Its src will
     // contain html-proxy.
     const htmlRes = await fetch(`${baseUrl}/__story/components-toolbar--default`);
     const html = await htmlRes.text();
@@ -110,7 +110,7 @@ describe("plugin smoke: dev endpoints", () => {
     expect(proxyMatch, "expected an html-proxy <script src> in the iframe HTML").toBeDefined();
     const proxySrc = proxyMatch![1]!;
 
-    // 2) Fetch the proxy script — it should contain a `virtual:openbook-story-entry` import.
+    // 2) Fetch the proxy script. It should contain a `virtual:openbook-story-entry` import.
     const proxyRes = await fetch(`${baseUrl}${proxySrc}`);
     expect(proxyRes.status).toBe(200);
     const proxyCode = await proxyRes.text();

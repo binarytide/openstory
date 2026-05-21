@@ -49,7 +49,7 @@ async function renderAndCollect(page: Page, url: string, timeoutMs = 10_000): Pr
     window.addEventListener("message", (event) => {
       const data = event.data as { source?: string; type?: string; status?: string };
       if (data?.source === "openbook" && data.type === "play-status" && data.status) {
-        // @ts-expect-error — injected by exposeFunction
+        // @ts-expect-error: injected by exposeFunction
         window.__capturePlayStatus(data.status);
       }
     });

@@ -1,6 +1,6 @@
 // Verifies openbook/test re-exports the expected API surface for play functions.
 // Runs against the built dist/test.js so we catch packaging bugs (e.g.
-// missing exports field, wrong file extension) — not just source.
+// missing exports field, wrong file extension), not just source.
 
 import { describe, expect, it } from "vitest";
 
@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 // be DTS-bundled). Consumers get typings via jest-dom's ambient augmentation
 // once they `import "openbook/test"`; tests dynamic-import as `unknown`.
 async function loadOpenbookTest(): Promise<Record<string, unknown>> {
-  // @ts-expect-error — see comment above; openbook/test has no DTS by design.
+  // @ts-expect-error: see comment above; openbook/test has no DTS by design.
   const mod = (await import("openbook/test")) as Record<string, unknown>;
   return mod;
 }
