@@ -1,5 +1,10 @@
 import "react-grab/dist/styles.css";
+import { init } from "react-grab";
 import type { Preview } from "ode/solid";
+
+if (typeof window !== "undefined") {
+  init();
+}
 
 const preview: Preview = {
   parameters: {

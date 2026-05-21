@@ -44,12 +44,7 @@ export const TopBar = ({
         <Sidebar className="h-4 w-4" />
       </Button>
       <Separator orientation="vertical" className="h-6" />
-      <div className="flex items-center gap-1 text-sm font-semibold tracking-tight">
-        <span>Ode</span>
-        <span className="text-muted-foreground text-xs font-normal">
-          · {manifest.framework}
-        </span>
-      </div>
+      <div className="text-sm font-semibold tracking-tight">Ode</div>
 
       <div className="flex-1" />
 

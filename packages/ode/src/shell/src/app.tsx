@@ -157,7 +157,7 @@ export const App = () => {
       <div className="flex min-h-0 flex-1">
         <aside
           className={cn(
-            "flex shrink-0 flex-col border-r border-border bg-background transition-[width]",
+            "flex shrink-0 flex-col border-r border-border bg-background transition-[width] duration-200 ease-[var(--ease-out)]",
             isNavCollapsed ? "w-0 overflow-hidden" : "w-72",
           )}
         >

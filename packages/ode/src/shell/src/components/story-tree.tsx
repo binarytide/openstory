@@ -12,8 +12,9 @@ const TREE_THEME_STYLES = {
   "--trees-bg-override": "var(--background)",
   "--trees-fg-override": "var(--foreground)",
   "--trees-fg-muted-override": "var(--muted-foreground)",
-  "--trees-bg-muted-override": "var(--muted)",
-  "--trees-accent-override": "var(--accent)",
+  "--trees-bg-muted-override": "transparent",
+  "--trees-accent-override":
+    "color-mix(in oklch, var(--foreground) 8%, transparent)",
   "--trees-border-color-override": "var(--border)",
 } as CSSProperties;
 
@@ -46,6 +47,7 @@ export const StoryTree = ({ manifest, selectedId, onSelect }: StoryTreeProps) =>
   const { model } = useFileTree({
     paths: mapping.paths,
     initialExpansion: "open",
+    icons: { set: "none", remap: { file: "" } },
     onSelectionChange: (selectedPaths) => {
       const [firstSelected] = selectedPaths;
       if (!firstSelected) return;

@@ -23,7 +23,7 @@ const StatusBadge = ({ status }: { status: StoryStatus }) => {
   if (status.playStatus === "running") {
     return (
       <Badge>
-        <Loader2 className="h-3 w-3 animate-spin" />
+        <Loader2 className="h-3 w-3 animate-spin [animation-duration:700ms]" />
         Play running
       </Badge>
     );
