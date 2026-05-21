@@ -34,7 +34,7 @@ nr dev
 
 ```
 packages/
-└── ode/             # Ode package
+└── openbook/        # Openbook package
 ```
 
 ## Development Workflow

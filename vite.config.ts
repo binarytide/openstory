@@ -5,7 +5,7 @@ export default defineConfig({
     "*.{js,ts,tsx}": "vp check --fix",
   },
   lint: {
-    ignorePatterns: ["dist", "build"],
+    ignorePatterns: ["dist", "build", "**/next-env.d.ts", "**/.next/**"],
     plugins: ["typescript"],
     rules: {
       "@typescript-eslint/ban-ts-comment": "error",
@@ -39,11 +39,11 @@ export default defineConfig({
         },
       },
       {
-        // Quality bar: every throw in ode's src/ must use a typed OdeError class.
+        // Quality bar: every throw in openbook's src/ must use a typed OpenbookError class.
         // This rule is enforced lexically; the script `pnpm check:errors` provides
-        // the full grep-based check.
-        files: ["packages/ode/src/**/*.{ts,tsx}"],
-        excludedFiles: ["packages/ode/src/errors.ts"],
+        // the full grep-based check. errors.ts itself never throws (only declares
+        // classes), so no file exclusion is needed here.
+        files: ["packages/openbook/src/**/*.{ts,tsx}"],
         rules: {
           "no-throw-literal": "error",
         },
