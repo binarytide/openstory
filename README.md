@@ -1,72 +1,55 @@
 # Ode
 
 [![version](https://img.shields.io/npm/v/ode?style=flat&colorA=000000&colorB=000000)](https://npmjs.com/package/ode)
-[![downloads](https://img.shields.io/npm/dt/ode.svg?style=flat&colorA=000000&colorB=000000)](https://npmjs.com/package/ode)
 
-## Install
+A lightweight, Vite-native [CSF 3](https://storybook.js.org/docs/api/csf) alternative to Storybook. Drop-in compatible types, single Vite server, sub-second cold start, ~10 dependencies. Agent-first.
+
+> Ode is in alpha (`0.0.x`). Any patch may break the public API.
+
+## Quickstart
 
 ```bash
-npm install ode
+pnpm add -D ode
+pnpm exec ode init
+pnpm exec ode dev
 ```
 
-## Usage
+`ode init` scaffolds `preview.tsx` and `vite.config.ts` for the framework detected in `package.json` (React or Solid).
 
-```ts
-import { greet, add } from "ode";
+## Migrate from Storybook
 
-greet("world"); // "Hello, world!"
-add(1, 2); // 3
+```diff
+- import type { Meta, StoryObj } from "@storybook/react";
+- import { expect, waitFor } from "@storybook/test";
++ import type { Meta, StoryObj } from "ode/react";
++ import { expect, waitFor } from "ode/test";
 ```
 
-### Browser (IIFE)
+`preview.tsx` keeps the same shape (`decorators`, `parameters`, `globalTypes`, `initialGlobals`).
 
-```html
-<script src="https://unpkg.com/ode/dist/index.iife.js"></script>
-<script>
-  Ode.greet("world"); // "Hello, world!"
-</script>
+## Commands
+
 ```
+ode dev        start the dev server
+ode build      write a static deployable site to dist/
+ode preview    serve the built site
+ode init       scaffold preview + vite config
+ode list       print manifest (--json for raw)
+ode inspect    print details for one story (--json for raw)
+```
+
+## Status
+
+This monorepo ships the `ode` package (lib + CLI + shell). v0.0.1 supports React and Solid via [CSF 3](https://storybook.js.org/blog/component-story-format-3-0).
 
 ## Development
 
-This is a pnpm monorepo using [vite-plus](https://github.com/nicolo-ribaudo/vite-plus) for building and [changesets](https://github.com/changesets/changesets) for versioning.
-
-### Setup
-
 ```bash
 pnpm install
+pnpm build      # builds the shell + the lib
+pnpm test       # unit + spec + integration
+pnpm typecheck
 ```
-
-### Build
-
-```bash
-pnpm build
-```
-
-### Test
-
-```bash
-pnpm test
-```
-
-### Lint & Format
-
-```bash
-pnpm lint
-pnpm format
-```
-
-### Release
-
-```bash
-pnpm changeset       # create a changeset
-pnpm version         # bump versions
-pnpm release         # build + publish
-```
-
-## Contributing
-
-Pull requests are welcome! Please run `pnpm check` before submitting.
 
 ## License
 
