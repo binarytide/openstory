@@ -71,13 +71,14 @@ export const run = async (argv: string[]): Promise<void> => {
         const port = Number(parsedArgs["port"] ?? DEFAULT_DEV_PORT);
         const host = String(parsedArgs["host"] ?? "localhost");
         const open = Boolean(parsedArgs["open"]);
-        await runDev({ port, host, open });
+        await runDev({ port, host, open, framework: parseFramework(parsedArgs["framework"]) });
         return;
       }
       case "build": {
         await runBuild(projectRoot, {
           outDir: String(parsedArgs["out"] ?? "dist"),
           base: String(parsedArgs["base"] ?? "/"),
+          framework: parseFramework(parsedArgs["framework"]),
         });
         return;
       }

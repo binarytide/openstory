@@ -1,9 +1,11 @@
 import { openstory } from "../plugin/index.js";
+import type { Framework } from "../types.js";
 
 export interface DevOptions {
   port: number;
   host: string;
   open: boolean;
+  framework?: Framework;
 }
 
 export const runDev = async (options: DevOptions): Promise<void> => {
@@ -14,7 +16,7 @@ export const runDev = async (options: DevOptions): Promise<void> => {
       host: options.host,
       open: options.open,
     },
-    plugins: [openstory()],
+    plugins: [openstory({ framework: options.framework })],
   });
   await server.listen();
   server.printUrls();

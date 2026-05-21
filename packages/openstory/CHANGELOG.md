@@ -1,5 +1,13 @@
 # openstory
 
+## 0.0.4
+
+### Patch Changes
+
+- `openstory build` now produces a deployable static site. It runs `vite.build()` with the openstory plugin programmatically, bundling each story's virtual entry into a real JS file at `dist/__story/<id>/entry.js`, copying the shell SPA to `dist/index.html` + `dist/assets/`, and writing the static manifest. Before this, the build only emitted HTML stubs that imported `virtual:openstory-story-entry?id=…`, which never resolved off the dev server, so `vercel deploy` produced a 404 at `/` and broken iframes.
+
+  Also adds `--framework <react|solid|vue|svelte>` to `openstory dev` and `openstory build` for projects whose `package.json` lists more than one supported framework.
+
 ## 0.0.3
 
 ### Patch Changes
