@@ -3,9 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Openbook",
+  title: "Openstory",
   openGraph: {
-    title: "Openbook",
+    title: "Openstory",
     type: "website",
     locale: "en_US",
   },

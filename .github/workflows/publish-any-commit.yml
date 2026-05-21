@@ -32,7 +32,7 @@ jobs:
           attempt=1
           while [ "$attempt" -le "$max_attempts" ]; do
             if pnpm dlx pkg-pr-new publish \
-              ./packages/openbook; then
+              ./packages/openstory; then
               exit 0
             fi
 

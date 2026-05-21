@@ -1,0 +1,10 @@
+{
+  "name": "@openstory-internal/shell",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pre-built shell UI for openstory. Bundled into dist/shell/ at build time. Not published.",
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  }
+}

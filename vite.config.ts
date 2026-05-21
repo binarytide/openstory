@@ -39,11 +39,11 @@ export default defineConfig({
         },
       },
       {
-        // Quality bar: every throw in openbook's src/ must use a typed OpenbookError class.
+        // Quality bar: every throw in openstory's src/ must use a typed OpenstoryError class.
         // This rule is enforced lexically; the script `pnpm check:errors` provides
         // the full grep-based check. errors.ts itself never throws (only declares
         // classes), so no file exclusion is needed here.
-        files: ["packages/openbook/src/**/*.{ts,tsx}"],
+        files: ["packages/openstory/src/**/*.{ts,tsx}"],
         rules: {
           "no-throw-literal": "error",
         },

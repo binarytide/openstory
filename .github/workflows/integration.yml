@@ -24,10 +24,10 @@ jobs:
         run: pnpm install
 
       - name: Install Playwright Chromium
-        run: pnpm --filter openbook exec playwright install --with-deps chromium
+        run: pnpm --filter openstory exec playwright install --with-deps chromium
 
       - name: Build
         run: pnpm build
 
       - name: Integration tests
-        run: pnpm --filter openbook exec vp test --project integration
+        run: pnpm --filter openstory exec vp test --project integration

@@ -1,7 +1,7 @@
 packages:
   - "packages/*"
   - "apps/*"
-  - "packages/openbook/tests/integration/fixtures/*"
+  - "packages/openstory/tests/integration/fixtures/*"
 
 overrides:
   vite: npm:@voidzero-dev/vite-plus-core@^0.1.20

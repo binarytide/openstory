@@ -34,7 +34,7 @@ nr dev
 
 ```
 packages/
-└── openbook/        # Openbook package
+└── openstory/        # Openstory package
 ```
 
 ## Development Workflow
