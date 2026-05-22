@@ -1,6 +1,6 @@
-import { createElement, isValidElement, type ComponentType, type ReactNode } from "react";
+import { createElement, type ElementType } from "react";
 import { OpenstoryAdapterMissingFrameworkError } from "../errors.js";
-import type { OpenstoryRenderer } from "../types.js";
+import type { OpenstoryRenderer, StoryContext } from "../types.js";
 
 interface ReactDomClient {
   createRoot: (container: HTMLElement) => {
@@ -29,17 +29,15 @@ const ensureReactDom = async (): Promise<ReactDomClient> => {
 const isPropsObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const coerceRenderResult = (value: unknown, args: unknown): ReactNode => {
-  if (typeof value === "function") {
+const defaultRender =
+  (component: unknown) =>
+  (args: unknown, _context: StoryContext<unknown>): unknown => {
     const componentProps = isPropsObject(args) ? args : {};
-    return createElement(value as ComponentType<Record<string, unknown>>, componentProps);
-  }
-  if (value === null || value === undefined) return null;
-  if (isValidElement(value)) return value;
-  return value as ReactNode;
-};
+    return createElement(component as ElementType, componentProps as Record<string, unknown>);
+  };
 
 export const renderer: OpenstoryRenderer<unknown, ReactMounted> = {
+  defaultRender,
   mount: ({ container, render, args, context }) => {
     let reactRoot: ReturnType<ReactDomClient["createRoot"]> | undefined;
     const mounted: ReactMounted = {
@@ -49,16 +47,14 @@ export const renderer: OpenstoryRenderer<unknown, ReactMounted> = {
     void (async () => {
       const { createRoot } = await ensureReactDom();
       reactRoot = createRoot(container);
-      reactRoot.render(coerceRenderResult(render(args, context), args));
+      reactRoot.render(render(args, context));
       mounted.dispose = () => reactRoot?.unmount();
       mounted.rerender = (vnode) => reactRoot?.render(vnode);
     })();
     return mounted;
   },
   update: (mounted, options) => {
-    mounted.rerender(
-      coerceRenderResult(options.render(options.args, options.context), options.args),
-    );
+    mounted.rerender(options.render(options.args, options.context));
   },
   unmount: (mounted) => {
     mounted.dispose();

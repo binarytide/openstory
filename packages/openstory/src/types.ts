@@ -123,6 +123,7 @@ export interface OpenstoryRenderer<TArgs = unknown, TMounted = unknown> {
   mount: (opts: RendererMountOpts<TArgs>) => TMounted;
   update: (mounted: TMounted, opts: RendererUpdateOpts<TArgs>) => void;
   unmount: (mounted: TMounted) => void;
+  defaultRender?: (component: unknown) => (args: TArgs, context: StoryContext<TArgs>) => unknown;
 }
 
 export interface RendererMountOpts<TArgs> {

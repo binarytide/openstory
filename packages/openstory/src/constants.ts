@@ -135,6 +135,19 @@ export const PROPS_NODE_NAME_HINTS = new Set([
   "header",
   "footer",
 ]);
+export const PROPS_DATE_NAME_HINTS = new Set([
+  "date",
+  "createdAt",
+  "updatedAt",
+  "deletedAt",
+  "startedAt",
+  "endedAt",
+  "expiresAt",
+  "completedAt",
+  "timestamp",
+  "time",
+]);
+export const PROPS_DATE_PLACEHOLDER_ISO = "2026-01-01T00:00:00.000Z";
 export const PROPS_EVENT_HANDLER_PREFIX = "on";
 export const PROPS_VARIANT_NAME_PRIORITY = [
   "variant",

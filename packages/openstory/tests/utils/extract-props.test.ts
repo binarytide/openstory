@@ -502,6 +502,21 @@ describe("extractPropsFromComponent - ref-typed and children fallbacks", () => {
     expect(result.props[0]?.kind).toBe("function");
   });
 
+  it("classifies date-named props with opaque types as string with an ISO placeholder default", async () => {
+    const source = `
+      type SomeDateAlias = ImportedDate;
+      export const Widget = (props: { createdAt: SomeDateAlias; date: SomeDateAlias }) => null;
+    `;
+    const componentPath = await writeFixture("dates.tsx", source);
+    const result = await extractPropsFromComponent(source, componentPath, "Widget");
+    const createdAt = result.props.find((prop) => prop.name === "createdAt");
+    const date = result.props.find((prop) => prop.name === "date");
+    expect(createdAt?.kind).toBe("string");
+    expect(createdAt?.defaultValue).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(date?.kind).toBe("string");
+    expect(date?.defaultValue).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+  });
+
   it("uses node-name hints as the ultimate fallback for opaque types", async () => {
     const source = `
       export const Widget = (props: { children: SomeOpaqueAlias }) => null;

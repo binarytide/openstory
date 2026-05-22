@@ -4,6 +4,8 @@ import { parseSync } from "oxc-parser";
 import { at, type AstNode, evalLiteral, unwrapTypeAnnotations } from "../csf/ast-helpers.js";
 import {
   PROPS_CROSS_FILE_RESOLUTION_EXTENSIONS,
+  PROPS_DATE_NAME_HINTS,
+  PROPS_DATE_PLACEHOLDER_ISO,
   PROPS_DOM_PROPS_TYPE_NAMES,
   PROPS_EVENT_HANDLER_PREFIX,
   PROPS_FC_TYPE_NAMES,
@@ -1398,6 +1400,13 @@ const memberToPropSchema = async (
 
   if (classification.kind === "unknown" && PROPS_NODE_NAME_HINTS.has(member.name)) {
     classification = { kind: "node" };
+  }
+
+  if (classification.kind === "unknown" && PROPS_DATE_NAME_HINTS.has(member.name)) {
+    classification = { kind: "string" };
+    if (member.defaultValue === undefined) {
+      member.defaultValue = PROPS_DATE_PLACEHOLDER_ISO;
+    }
   }
 
   if (classification.kind === "unknown") {

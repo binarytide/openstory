@@ -91,12 +91,16 @@ const composeDecorators = (
 const pickRenderFunction = (
   story: Record<string, unknown>,
   meta: Record<string, unknown>,
+  renderer: OpenstoryRenderer<unknown, unknown>,
 ): RenderFunction => {
   const storyRender = readFunction<RenderFunction>(story, "render");
   if (storyRender) return storyRender;
   const metaRender = readFunction<RenderFunction>(meta, "render");
   if (metaRender) return metaRender;
   const component = meta["component"];
+  if (component !== undefined && component !== null && renderer.defaultRender) {
+    return renderer.defaultRender(component) as RenderFunction;
+  }
   return () => component ?? null;
 };
 
@@ -224,7 +228,7 @@ export const boot = (options: BootOptions): void => {
 
   const composedDecorators = composeDecorators(
     [...(options.preview?.decorators ?? []), ...readDecorators(meta), ...readDecorators(story)],
-    pickRenderFunction(story, meta),
+    pickRenderFunction(story, meta, options.renderer),
   );
 
   const beforeEach =
