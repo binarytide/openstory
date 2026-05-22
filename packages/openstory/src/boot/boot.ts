@@ -195,7 +195,9 @@ export const boot = (options: BootOptions): void => {
   const meta = readRecord(options.storyModule, "default") ?? {};
   const story = readRecord(options.storyModule, options.exportName);
   if (!story) {
-    surfaceFatalMessage(`openstory: story "${escapeHtml(options.exportName)}" not found in module.`);
+    surfaceFatalMessage(
+      `openstory: story "${escapeHtml(options.exportName)}" not found in module.`,
+    );
     return;
   }
 
