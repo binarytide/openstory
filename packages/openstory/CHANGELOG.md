@@ -18,6 +18,8 @@
 
 - React adapter wraps every story render in a `StoryErrorBoundary`. When a story throws during render, the iframe stays alive and shows a friendly red error panel with message + stack trace instead of going blank or breaking subsequent navigation. Resets when the story or args change.
 
+- `document.title` now reflects the consumer's project (read from `manifest.projectName`). The shell page shows `"<project name>"` and per-story iframe pages show `"<story id> · <project name>"`. Both `openstory dev` and `openstory build` honor this.
+
 - Read `OPENSTORY_VERSION` from `package.json` at runtime so the CLI's `--version` flag and manifest output stay in sync with the published package.
 
 ## 0.0.6

@@ -73,6 +73,11 @@ export const App = () => {
   }, [manifest, globals]);
 
   useEffect(() => {
+    if (!manifest) return;
+    document.title = manifest.projectName;
+  }, [manifest]);
+
+  useEffect(() => {
     writeUrlState({ storyId: selectedStoryId, args, globals });
   }, [selectedStoryId, args, globals]);
 

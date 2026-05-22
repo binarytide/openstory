@@ -210,6 +210,7 @@ const createStoryMiddleware =
       const rawHtml = renderStoryIframeHtml({
         story,
         previewParameters: manifest.parameters,
+        projectName: manifest.projectName,
       });
       const html = await server.transformIndexHtml(url, rawHtml, req.originalUrl);
       res.setHeader("content-type", "text/html; charset=utf-8");

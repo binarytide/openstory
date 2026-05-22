@@ -90,7 +90,9 @@ const renderStoryHtmlForBuild = (
   bundlePath: string,
   cssPaths: string[],
   base: string,
+  projectName: string | undefined,
 ): string => {
+  const titleSuffix = projectName ? escapeAttribute(projectName) : "Openstory";
   const layout =
     pickLayout(story.parameters) ?? pickLayout(previewParameters) ?? OPENSTORY_DEFAULT_LAYOUT;
   const bodyClassName =
@@ -113,7 +115,7 @@ const renderStoryHtmlForBuild = (
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${escapedStoryId} · Openstory</title>
+  <title>${escapedStoryId} · ${titleSuffix}</title>
   <style>
     html, body { margin: 0; padding: 0; min-height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body.openstory-layout-centered  { display: grid; place-items: center; min-height: 100vh; padding: 16px; box-sizing: border-box; }
@@ -212,6 +214,7 @@ export const runBuild = async (projectRoot: string, options: BuildOptions): Prom
       bundleRelativePath,
       [...cssForStory],
       options.base,
+      manifest.projectName,
     );
     const targetPath = join(absoluteOutDir, "__story", story.id, "index.html");
     await mkdir(dirname(targetPath), { recursive: true });

@@ -40,6 +40,7 @@ const COMPONENT_FRAMEWORK_HELPERS: Record<Framework, ComponentFrameworkHelpers> 
 export interface RenderStoryIframeHtmlOptions {
   story: ManifestStory;
   previewParameters?: Record<string, unknown>;
+  projectName?: string;
   base?: string;
 }
 
@@ -70,12 +71,13 @@ const pickLayout = (parameters: Record<string, unknown> | undefined): string | u
 };
 
 export const renderStoryIframeHtml = (options: RenderStoryIframeHtmlOptions): string => {
-  const { story, previewParameters } = options;
+  const { story, previewParameters, projectName } = options;
   const layout =
     pickLayout(story.parameters) ?? pickLayout(previewParameters) ?? OPENSTORY_DEFAULT_LAYOUT;
   const bodyClassName =
     OPENSTORY_LAYOUT_CLASSES[layout] ?? OPENSTORY_LAYOUT_CLASSES[OPENSTORY_DEFAULT_LAYOUT];
   const escapedStoryId = escapeAttribute(story.id);
+  const titleSuffix = projectName ? escapeAttribute(projectName) : "Openstory";
   const virtualImportSpecifier = `${VIRTUAL_STORY_ENTRY_ID}?id=${encodeURIComponent(story.id)}`;
   const initialStoryGlobal = JSON.stringify({
     id: story.id,
@@ -90,7 +92,7 @@ export const renderStoryIframeHtml = (options: RenderStoryIframeHtmlOptions): st
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${escapedStoryId} · Openstory</title>
+  <title>${escapedStoryId} · ${titleSuffix}</title>
   <style>
     html, body { margin: 0; padding: 0; min-height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body.openstory-layout-centered  { display: grid; place-items: center; min-height: 100vh; padding: 16px; box-sizing: border-box; }
