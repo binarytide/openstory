@@ -1,5 +1,13 @@
 # openstory
 
+## 0.0.9
+
+### Patch Changes
+
+- `openstory setup`: detect already-resolvable peer deps (transitively installed via `node_modules`) using `require.resolve`, not just `package.json`. Previously a project that had `vite` or `@vitejs/plugin-react` available transitively (common in monorepos) would still be told to install them, and `npm install --save-dev vite @vitejs/plugin-react` would `ERESOLVE`-fail because of conflicting peer ranges already pinned elsewhere in the tree.
+
+- `openstory setup`: when the install step fails, warn with the exact command and continue scaffolding files + generating stories instead of bailing. Lets the user resolve the install separately without re-running setup.
+
 ## 0.0.8
 
 ### Patch Changes

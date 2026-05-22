@@ -1,6 +1,6 @@
 {
   "name": "openstory",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A lightweight, Vite-native CSF 3 alternative to Storybook. Agent-first component lab.",
   "keywords": [
     "components",

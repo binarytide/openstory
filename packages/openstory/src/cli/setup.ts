@@ -53,9 +53,10 @@ export const runSetup = async (projectRoot: string, options: SetupCliOptions): P
       });
       if (install.exitCode !== 0) {
         process.stderr.write(
-          `install failed: ${install.command} exited with ${install.exitCode}\n`,
+          `\n  warning: \`${install.command}\` exited with ${install.exitCode}.\n` +
+            `  continuing — install the missing peer deps yourself, then re-run \`openstory dev\`:\n` +
+            `    ${install.command}\n\n`,
         );
-        return;
       }
     }
   }

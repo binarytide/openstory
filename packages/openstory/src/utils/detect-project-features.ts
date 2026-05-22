@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { join } from "node:path";
 import { detectFramework } from "../plugin/framework-detection.js";
 import type { Framework } from "../types.js";
@@ -83,6 +84,16 @@ const findShadcnSidebar = async (projectRoot: string): Promise<boolean> => {
   return false;
 };
 
+const isPackageResolvable = (packageName: string, fromDirectory: string): boolean => {
+  try {
+    const resolveFrom = createRequire(join(fromDirectory, "__openstory_resolve_anchor__.js"));
+    resolveFrom.resolve(packageName);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const detectProjectFeatures = async (
   projectRoot: string,
   frameworkOverride?: Framework,
@@ -100,6 +111,7 @@ export const detectProjectFeatures = async (
   const globalsCssRelativePath = await findGlobalsCss(projectRoot);
   const hasShadcnSidebar = await findShadcnSidebar(projectRoot);
 
+  const reactPluginName = framework === "react" ? "@vitejs/plugin-react" : undefined;
   return {
     framework,
     packageManager,
@@ -109,7 +121,9 @@ export const detectProjectFeatures = async (
     hasShadcnSidebar,
     globalsCssRelativePath,
     pathAliases,
-    needsViteInstall: !("vite" in allDependencies),
-    needsReactPluginInstall: framework === "react" && !("@vitejs/plugin-react" in allDependencies),
+    needsViteInstall: !("vite" in allDependencies) && !isPackageResolvable("vite", projectRoot),
+    needsReactPluginInstall: reactPluginName
+      ? !(reactPluginName in allDependencies) && !isPackageResolvable(reactPluginName, projectRoot)
+      : false,
   };
 };
