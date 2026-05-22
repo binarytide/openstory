@@ -8,18 +8,53 @@ Openstory is a drop-in replacement for Storybook. Your existing stories work as-
 
 > Openstory is in alpha (`0.0.x`). Any patch may break the public API.
 
-## Quick Start
+## Install
 
-Run this at your project root:
+Install Openstory, Vite, and the Vite plugin for your framework:
 
 ```bash
-pnpm exec openstory init
+# React
+pnpm add -D openstory vite @vitejs/plugin-react
+
+# Solid
+pnpm add -D openstory vite vite-plugin-solid
+
+# Vue
+pnpm add -D openstory vite @vitejs/plugin-vue
+
+# Svelte
+pnpm add -D openstory vite @sveltejs/vite-plugin-svelte
 ```
 
-`openstory init` scaffolds `preview` and `vite.config.ts` for the framework detected in your `package.json` (React, Solid, Vue, or Svelte). Then:
+Then start the dev server:
 
 ```bash
 pnpm exec openstory dev
+```
+
+No `vite.config.ts` required — Openstory configures Vite in-memory and picks up `tsconfig.json` path aliases automatically. If you'd rather drive Vite yourself, drop the plugin into your own config:
+
+```ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { openstory } from "openstory/plugin";
+
+export default defineConfig({
+  plugins: [react(), openstory({ framework: "react" })],
+});
+```
+
+(Optional) Add a `preview.tsx` next to your stories for global decorators, parameters, or providers:
+
+```tsx
+import type { Preview } from "openstory/react";
+
+const preview: Preview = {
+  parameters: { layout: "padded" },
+  decorators: [],
+};
+
+export default preview;
 ```
 
 ## How It Works
@@ -54,90 +89,6 @@ export const Primary: StoryObj<typeof meta> = {
 
 The shell UI is React + Tailwind + shadcn. Stories render in an iframe via a postMessage protocol for live args/globals updates and play-status reporting.
 
-## Manual Installation
-
-If you cannot use the CLI, configure Openstory manually for your framework:
-
-#### React
-
-Install:
-
-```bash
-pnpm add -D openstory @vitejs/plugin-react
-```
-
-Then add to your `vite.config.ts`:
-
-```ts
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import { openstory } from "openstory/plugin";
-
-export default defineConfig({
-  plugins: [react(), openstory({ framework: "react" })],
-});
-```
-
-#### Solid
-
-Install:
-
-```bash
-pnpm add -D openstory vite-plugin-solid
-```
-
-Then add to your `vite.config.ts`:
-
-```ts
-import { defineConfig } from "vite";
-import solid from "vite-plugin-solid";
-import { openstory } from "openstory/plugin";
-
-export default defineConfig({
-  plugins: [solid(), openstory({ framework: "solid" })],
-});
-```
-
-#### Vue
-
-Install:
-
-```bash
-pnpm add -D openstory @vitejs/plugin-vue
-```
-
-Then add to your `vite.config.ts`:
-
-```ts
-import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
-import { openstory } from "openstory/plugin";
-
-export default defineConfig({
-  plugins: [vue(), openstory({ framework: "vue" })],
-});
-```
-
-#### Svelte
-
-Install:
-
-```bash
-pnpm add -D openstory @sveltejs/vite-plugin-svelte
-```
-
-Then add to your `vite.config.ts`:
-
-```ts
-import { defineConfig } from "vite";
-import { svelte } from "@sveltejs/vite-plugin-svelte";
-import { openstory } from "openstory/plugin";
-
-export default defineConfig({
-  plugins: [svelte(), openstory({ framework: "svelte" })],
-});
-```
-
 ## Migrate from Storybook
 
 Swap your story imports. `meta`, `decorators`, `parameters`, `globalTypes`, `initialGlobals`, and `play` functions keep the same shape:
@@ -157,7 +108,7 @@ Swap your story imports. `meta`, `decorators`, `parameters`, `globalTypes`, `ini
 openstory dev        start the dev server
 openstory build      build a static deployable site
 openstory preview    serve the built site
-openstory init       scaffold preview + vite config (react|solid|vue|svelte)
+openstory generate   generate CSF 3 stories for components
 openstory list       print manifest (--json for raw)
 openstory inspect    print details for one story (--json for raw)
 ```

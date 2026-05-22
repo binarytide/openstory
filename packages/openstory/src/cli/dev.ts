@@ -1,5 +1,6 @@
-import { openstory, type OpenstoryComponentsOption } from "../plugin/index.js";
+import type { OpenstoryComponentsOption } from "../plugin/index.js";
 import type { Framework } from "../types.js";
+import { buildInlineViteConfig } from "../utils/build-inline-vite-config.js";
 
 export interface DevOptions {
   port: number;
@@ -10,14 +11,20 @@ export interface DevOptions {
 }
 
 export const runDev = async (options: DevOptions): Promise<void> => {
+  const { config } = await buildInlineViteConfig({
+    projectRoot: process.cwd(),
+    framework: options.framework,
+    components: options.components,
+  });
+
   const { createServer } = await import("vite");
   const server = await createServer({
+    ...config,
     server: {
       port: options.port,
       host: options.host,
       open: options.open,
     },
-    plugins: [openstory({ framework: options.framework, components: options.components })],
   });
   await server.listen();
   server.printUrls();

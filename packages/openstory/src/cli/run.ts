@@ -7,11 +7,9 @@ import type { Framework } from "../types.js";
 import { runBuild } from "./build.js";
 import { runDev } from "./dev.js";
 import { runGenerate } from "./generate.js";
-import { runInit } from "./init.js";
 import { runInspect } from "./inspect.js";
 import { runList } from "./list.js";
 import { runPreview } from "./preview.js";
-import { runSetup } from "./setup.js";
 
 const parseFramework = (value: unknown): Framework | undefined => {
   if (value === "react" || value === "solid" || value === "vue" || value === "svelte") {
@@ -62,11 +60,6 @@ interface PreviewCliOptions {
   out: string;
 }
 
-interface InitCliOptions {
-  framework?: string;
-  force: boolean;
-}
-
 interface ListCliOptions {
   json: boolean;
   filter?: string;
@@ -80,12 +73,6 @@ interface GenerateCliInputOptions {
   framework?: string;
   force: boolean;
   dryRun: boolean;
-}
-
-interface SetupCliInputOptions {
-  framework?: string;
-  force: boolean;
-  install: boolean;
 }
 
 const buildProgram = (projectRoot: string): Command => {
@@ -167,18 +154,6 @@ const buildProgram = (projectRoot: string): Command => {
     });
 
   program
-    .command("init")
-    .description("scaffold preview + vite config (react|solid|vue|svelte)")
-    .option("--framework <framework>", "react|solid|vue|svelte (auto-detected by default)")
-    .option("--force", "overwrite existing files", false)
-    .action(async (options: InitCliOptions) => {
-      await runInit(projectRoot, {
-        framework: parseFramework(options.framework),
-        force: options.force,
-      });
-    });
-
-  program
     .command("list")
     .description("print manifest")
     .option("--json", "machine-readable output", false)
@@ -197,22 +172,6 @@ const buildProgram = (projectRoot: string): Command => {
     .option("--json", "machine-readable output", false)
     .action(async (storyId: string, options: InspectCliOptions) => {
       await runInspect(projectRoot, storyId, { json: options.json });
-    });
-
-  program
-    .command("setup")
-    .description(
-      "detect framework / providers / aliases, install missing peer deps, scaffold preview + vite config, and generate stories",
-    )
-    .option("--framework <framework>", "react|solid|vue|svelte (auto-detected by default)")
-    .option("--force", "overwrite existing vite.config.ts / preview / stories", false)
-    .option("--no-install", "skip installing missing peer deps (vite, vite plugin)")
-    .action(async (options: SetupCliInputOptions) => {
-      await runSetup(projectRoot, {
-        framework: parseFramework(options.framework),
-        force: options.force,
-        installDeps: options.install,
-      });
     });
 
   program

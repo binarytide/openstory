@@ -5,7 +5,8 @@ import { OpenstoryBuildFailedError } from "../errors.js";
 import { ManifestBuilder } from "../plugin/manifest.js";
 import { detectFramework } from "../plugin/framework-detection.js";
 import { findPreviewFile } from "../plugin/preview-discovery.js";
-import { openstory, type OpenstoryComponentsOption } from "../plugin/index.js";
+import type { OpenstoryComponentsOption } from "../plugin/index.js";
+import { buildInlineViteConfig } from "../utils/build-inline-vite-config.js";
 import {
   COMPONENT_IGNORE_GLOBS,
   DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK,
@@ -155,19 +156,24 @@ export const runBuild = async (projectRoot: string, options: BuildOptions): Prom
     ? options.outDir
     : resolve(projectRoot, options.outDir);
 
-  const { build } = await import("vite");
-
   const storyEntryInputs: Record<string, string> = {};
   for (const story of manifest.stories) {
     storyEntryInputs[`__story/${story.id}/entry`] =
       `${VIRTUAL_STORY_ENTRY_ID}?id=${encodeURIComponent(story.id)}`;
   }
 
+  const { config: inlineConfig } = await buildInlineViteConfig({
+    projectRoot,
+    framework,
+    components: options.components,
+  });
+
+  const { build } = await import("vite");
+
   await build({
-    root: projectRoot,
+    ...inlineConfig,
     base: options.base,
     logLevel: "warn",
-    plugins: [openstory({ framework, preview: previewPath, components: options.components })],
     build: {
       outDir: absoluteOutDir,
       emptyOutDir: true,
