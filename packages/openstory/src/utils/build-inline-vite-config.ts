@@ -83,7 +83,12 @@ export const buildInlineViteConfig = async (
   const config: InlineConfig = {
     root: projectRoot,
     configFile: false,
-    resolve: { alias: aliasEntries },
+    resolve: {
+      alias: aliasEntries,
+      dedupe: framework === "react" ? ["react", "react-dom"] : [],
+    },
+    optimizeDeps:
+      framework === "react" ? { include: ["react", "react-dom", "react-dom/client"] } : undefined,
     plugins: [frameworkPlugin, openstory({ framework, components: options.components })],
   };
 
