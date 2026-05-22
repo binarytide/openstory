@@ -1,5 +1,17 @@
 # openstory
 
+## 0.0.11
+
+### Patch Changes
+
+- `openstory setup`: package-manager detection now walks up from the project directory to the workspace root, so monorepo packages (where the `pnpm-lock.yaml` / `bun.lockb` / `yarn.lock` lives at the workspace root, not in the subpackage) get the correct package manager. Previously a pnpm workspace's `apps/web` subpackage would fall through to `npm` and trigger `npm install` — which often re-runs install across the whole workspace and trips on unrelated `prepare`/`postinstall` hooks (e.g. `husky: command not found`). Pnpm projects now correctly use `pnpm add -D`, yarn uses `yarn add -D`, bun uses `bun add -d`.
+
+## 0.0.10
+
+### Patch Changes
+
+- fix
+
 ## 0.0.9
 
 ### Patch Changes

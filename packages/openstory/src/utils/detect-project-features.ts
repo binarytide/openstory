@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { detectFramework } from "../plugin/framework-detection.js";
 import type { Framework } from "../types.js";
 import { fileExists } from "./file-exists.js";
@@ -46,19 +46,49 @@ const COMMON_GLOBALS_CSS_PATHS = [
 
 const COMMON_SHADCN_SIDEBAR_PATHS = ["components/ui/sidebar.tsx", "src/components/ui/sidebar.tsx"];
 
+const fromDeclaredField = (rawValue: unknown): DetectedPackageManager | undefined => {
+  if (typeof rawValue !== "string") return undefined;
+  if (rawValue.startsWith("pnpm")) return "pnpm";
+  if (rawValue.startsWith("yarn")) return "yarn";
+  if (rawValue.startsWith("npm")) return "npm";
+  if (rawValue.startsWith("bun")) return "bun";
+  return undefined;
+};
+
+const fromLockfileAtDirectory = async (
+  directory: string,
+): Promise<DetectedPackageManager | undefined> => {
+  if (await fileExists(join(directory, "pnpm-lock.yaml"))) return "pnpm";
+  if (await fileExists(join(directory, "bun.lockb"))) return "bun";
+  if (await fileExists(join(directory, "yarn.lock"))) return "yarn";
+  if (await fileExists(join(directory, "package-lock.json"))) return "npm";
+  return undefined;
+};
+
 const detectPackageManager = async (
   projectRoot: string,
   packageJson: PackageJsonShape,
 ): Promise<DetectedPackageManager> => {
-  const declared = typeof packageJson.packageManager === "string" ? packageJson.packageManager : "";
-  if (declared.startsWith("pnpm")) return "pnpm";
-  if (declared.startsWith("yarn")) return "yarn";
-  if (declared.startsWith("npm")) return "npm";
-  if (declared.startsWith("bun")) return "bun";
-  if (await fileExists(join(projectRoot, "pnpm-lock.yaml"))) return "pnpm";
-  if (await fileExists(join(projectRoot, "bun.lockb"))) return "bun";
-  if (await fileExists(join(projectRoot, "yarn.lock"))) return "yarn";
-  return "npm";
+  const declared = fromDeclaredField(packageJson.packageManager);
+  if (declared) return declared;
+
+  let cursor = projectRoot;
+  for (;;) {
+    const fromLockfile = await fromLockfileAtDirectory(cursor);
+    if (fromLockfile) return fromLockfile;
+    try {
+      const parentPackageJsonRaw = await readFile(join(cursor, "package.json"), "utf8");
+      const parentDeclared = fromDeclaredField(
+        (JSON.parse(parentPackageJsonRaw) as PackageJsonShape).packageManager,
+      );
+      if (parentDeclared) return parentDeclared;
+    } catch {
+      // package.json missing — keep walking up
+    }
+    const parent = dirname(cursor);
+    if (parent === cursor) return "npm";
+    cursor = parent;
+  }
 };
 
 const readPackageJson = async (projectRoot: string): Promise<PackageJsonShape> => {
