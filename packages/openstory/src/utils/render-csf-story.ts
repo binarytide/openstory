@@ -85,6 +85,10 @@ const placeholderArgValue = (prop: PropSchema): unknown => {
       return prop.options?.[0];
     case "node":
       return prop.name === "children" ? PROPS_PLACEHOLDER_STRING_VALUE : undefined;
+    case "array":
+      return prop.optional ? undefined : [];
+    case "object":
+      return prop.optional ? undefined : {};
     default:
       return undefined;
   }
@@ -100,8 +104,8 @@ const shouldIncludeInArgs = (prop: PropSchema): boolean => {
   if (looksLikeRefPropName(prop.name)) return false;
   if (prop.kind === "function") return false;
   if (prop.kind === "unknown") return false;
-  if (prop.kind === "object" && prop.defaultValue === undefined) return false;
-  if (prop.kind === "array" && prop.defaultValue === undefined) return false;
+  if (prop.kind === "object" && prop.defaultValue === undefined && prop.optional) return false;
+  if (prop.kind === "array" && prop.defaultValue === undefined && prop.optional) return false;
   if (prop.kind === "node" && prop.name !== "children") return false;
   return true;
 };

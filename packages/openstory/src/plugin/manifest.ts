@@ -3,8 +3,8 @@ import { relative } from "node:path";
 import fg from "fast-glob";
 import type { ViteDevServer } from "vite";
 
-import { OPENSTORY_VERSION } from "../constants.js";
 import { OpenstoryCsfDuplicateStoryIdError } from "../errors.js";
+import { OPENSTORY_VERSION } from "../utils/openstory-version.js";
 import { resolveProjectDisplay } from "../utils/resolve-project-display.js";
 import { parseCsf, type ParsedStory } from "../csf/parser.js";
 import { parsePreview } from "../csf/preview-parser.js";

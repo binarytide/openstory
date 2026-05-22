@@ -4,7 +4,11 @@
 
 ### Patch Changes
 
-- fix
+- Add `openstory generate` command. Walks oxc-parsed TSX with full type resolution (cross-file imports, tsconfig `paths` aliases with `extends` chains, interface heritage, intersections, discriminated unions of object types, `Partial`/`Required`/`Readonly`/`Pick`/`Omit`, `React.FC<P>`, `forwardRef<_, P>`, cva `VariantProps<typeof X>` including cross-file and indexed access, TS enums, JSDoc descriptions and `@default`). Falls back to synthesizing prop schemas from destructure patterns when the surrounding type is opaque (e.g. Radix `ComponentProps<typeof Primitive>`). Emits CSF 3 source with Default plus one story per enum option (capped at 12), and adds `Loading`/`Disabled`/`WithError`/`Open`/`Pressed`/`Selected` stories when matching boolean props are present. Required `array` and `object` props default to `[]` / `{}` respectively so generated stories don't crash on `undefined.map()`.
+
+- Fix `openstory dev` rendering "Functions are not valid as a React child" for stories that rely on the default render fallback (i.e. `export const Default: Story = {};`). The React adapter now wraps a bare component returned by render with `createElement(component, args)`.
+
+- Read `OPENSTORY_VERSION` from `package.json` at runtime so the CLI's `--version` flag and manifest output stay in sync with the published package.
 
 ## 0.0.6
 

@@ -1,5 +1,6 @@
 import { Command } from "commander";
-import { DEFAULT_DEV_PORT, OPENSTORY_VERSION } from "../constants.js";
+import { DEFAULT_DEV_PORT } from "../constants.js";
+import { OPENSTORY_VERSION } from "../utils/openstory-version.js";
 import { OpenstoryError } from "../errors.js";
 import type { OpenstoryComponentsOption } from "../plugin/index.js";
 import type { Framework } from "../types.js";

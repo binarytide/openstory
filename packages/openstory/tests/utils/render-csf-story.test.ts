@@ -232,6 +232,17 @@ describe("renderCsfStory - args and argTypes", () => {
     expect(rendered.source).toContain("label:");
   });
 
+  it("defaults required array props to [] and required object props to {} so the component does not crash", () => {
+    const rendered = renderBasic([
+      { name: "items", optional: false, kind: "array" },
+      { name: "config", optional: false, kind: "object" },
+      { name: "optionalItems", optional: true, kind: "array" },
+    ]);
+    expect(rendered.source).toMatch(/items:\s*\[\]/);
+    expect(rendered.source).toMatch(/config:\s*\{\}/);
+    expect(rendered.source).not.toContain("optionalItems:");
+  });
+
   it("omits unknown and bare function props from args", () => {
     const rendered = renderBasic([
       { name: "onClick", optional: true, kind: "function" },
