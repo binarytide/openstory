@@ -71,6 +71,7 @@ const buildImportSpecifier = (storyAbsolutePath: string, componentAbsolutePath: 
 
 const placeholderArgValue = (prop: PropSchema): unknown => {
   if (prop.defaultValue !== undefined) return prop.defaultValue;
+  if (looksLikeRefPropName(prop.name)) return { current: null };
   switch (prop.kind) {
     case "string":
       if (prop.name === "children" || /label|title|name|text|heading/i.test(prop.name)) {
@@ -101,7 +102,7 @@ const looksLikeRefPropName = (propName: string): boolean =>
 
 const shouldIncludeInArgs = (prop: PropSchema): boolean => {
   if (PROPS_ARG_NOISE.has(prop.name)) return false;
-  if (looksLikeRefPropName(prop.name)) return false;
+  if (looksLikeRefPropName(prop.name)) return !prop.optional;
   if (prop.kind === "function") return false;
   if (prop.kind === "unknown") return false;
   if (prop.kind === "object" && prop.defaultValue === undefined && prop.optional) return false;

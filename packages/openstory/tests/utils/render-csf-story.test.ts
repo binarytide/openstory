@@ -232,6 +232,15 @@ describe("renderCsfStory - args and argTypes", () => {
     expect(rendered.source).toContain("label:");
   });
 
+  it("fills required ref-named props with `{ current: null }` so `.current` access is safe", () => {
+    const rendered = renderBasic([
+      { name: "containerRef", optional: false, kind: "function" },
+      { name: "textareaRef", optional: true, kind: "function" },
+    ]);
+    expect(rendered.source).toMatch(/containerRef:\s*\{\s*current:\s*null/);
+    expect(rendered.source).not.toContain("textareaRef:");
+  });
+
   it("defaults required array props to [] and required object props to {} so the component does not crash", () => {
     const rendered = renderBasic([
       { name: "items", optional: false, kind: "array" },

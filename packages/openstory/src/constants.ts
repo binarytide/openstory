@@ -181,6 +181,22 @@ export const PROPS_REF_TYPE_NAMES = new Set([
   "LegacyRef",
   "RefCallback",
 ]);
+export const PROPS_ARRAY_TYPE_NAMES = new Set([
+  "Array",
+  "ReadonlyArray",
+  "Iterable",
+  "ArrayLike",
+  "Set",
+  "ReadonlySet",
+]);
+export const PROPS_OBJECT_TYPE_NAMES = new Set([
+  "Record",
+  "Map",
+  "ReadonlyMap",
+  "WeakMap",
+  "WeakSet",
+  "Object",
+]);
 export const PROPS_LOADING_NAMES = new Set(["isLoading", "loading", "pending", "isPending"]);
 export const PROPS_DISABLED_NAMES = new Set(["disabled", "isDisabled"]);
 export const PROPS_ERROR_NAMES = new Set(["error", "hasError", "isError"]);

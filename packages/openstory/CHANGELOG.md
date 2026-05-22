@@ -10,6 +10,14 @@
 
 - Generator: date-named props (`date`, `createdAt`, `updatedAt`, `timestamp`, etc.) with opaque types now default to an ISO 8601 string so `new Date(value)` works. Fixes "Invalid time value" crashes in `date-fns`-style consumers.
 
+- Generator: classify generic `Array<T>`, `ReadonlyArray<T>`, `Iterable<T>`, `ArrayLike<T>`, `Set<T>`, `ReadonlySet<T>` as `kind: "array"` and `Record<K,V>`, `Map<K,V>`, `ReadonlyMap<K,V>`, `WeakMap<K,V>`, `WeakSet<K,V>` as `kind: "object"`. Fixes "X is not iterable" / "Cannot read properties of undefined (reading 'map')" crashes on components that destructure or iterate these collection-typed props.
+
+- Generator: `const Alias = Namespace.Member` (shadcn-style `const Dialog = DialogPrimitive.Root`) is now recognized as a valid component during primary-component selection. Previously the orchestrator skipped the alias and picked a compound subpart (e.g. `DialogPortal`, `MenuItem`, `SelectContent`, `PopoverPortal`), which crashes standalone with "X must be used within Y". The root alias is the right primary for an `openstory generate`-produced default story.
+
+- Generator: ref-typed props (`RefObject<T>`, `MutableRefObject<T>`, etc., or any name ending in `Ref` for required props) are now filled with `{ current: null }` so consumer code reading `ref.current` doesn't throw "Cannot read properties of undefined".
+
+- React adapter wraps every story render in a `StoryErrorBoundary`. When a story throws during render, the iframe stays alive and shows a friendly red error panel with message + stack trace instead of going blank or breaking subsequent navigation. Resets when the story or args change.
+
 - Read `OPENSTORY_VERSION` from `package.json` at runtime so the CLI's `--version` flag and manifest output stay in sync with the published package.
 
 ## 0.0.6

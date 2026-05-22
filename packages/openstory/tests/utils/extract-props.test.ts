@@ -502,6 +502,39 @@ describe("extractPropsFromComponent - ref-typed and children fallbacks", () => {
     expect(result.props[0]?.kind).toBe("function");
   });
 
+  it("classifies Array<T>/Set<T>/Iterable<T> generic references as array kind", async () => {
+    const source = `
+      export const Widget = (props: { rows: Array<string>; tags: ReadonlyArray<number>; bucket: Set<string> }) => null;
+    `;
+    const componentPath = await writeFixture("collections.tsx", source);
+    const result = await extractPropsFromComponent(source, componentPath, "Widget");
+    expect(result.props.find((prop) => prop.name === "rows")?.kind).toBe("array");
+    expect(result.props.find((prop) => prop.name === "tags")?.kind).toBe("array");
+    expect(result.props.find((prop) => prop.name === "bucket")?.kind).toBe("array");
+  });
+
+  it("classifies Record<K,V>/Map<K,V> generic references as object kind", async () => {
+    const source = `
+      export const Widget = (props: { meta: Record<string, unknown>; lookup: Map<string, number> }) => null;
+    `;
+    const componentPath = await writeFixture("maps.tsx", source);
+    const result = await extractPropsFromComponent(source, componentPath, "Widget");
+    expect(result.props.find((prop) => prop.name === "meta")?.kind).toBe("object");
+    expect(result.props.find((prop) => prop.name === "lookup")?.kind).toBe("object");
+  });
+
+  it("recognises `const Alias = Namespace.Member` as a valid component without props", async () => {
+    const source = `
+      import * as DialogPrimitive from "@radix-ui/react-dialog";
+      const Dialog = DialogPrimitive.Root;
+      export { Dialog };
+    `;
+    const componentPath = await writeFixture("dialog-alias.tsx", source);
+    const result = await extractPropsFromComponent(source, componentPath, "Dialog");
+    expect(result.resolvedAsFunction).toBe(true);
+    expect(result.props).toEqual([]);
+  });
+
   it("classifies date-named props with opaque types as string with an ISO placeholder default", async () => {
     const source = `
       type SomeDateAlias = ImportedDate;

@@ -3,6 +3,7 @@ import { dirname, isAbsolute, resolve } from "node:path";
 import { parseSync } from "oxc-parser";
 import { at, type AstNode, evalLiteral, unwrapTypeAnnotations } from "../csf/ast-helpers.js";
 import {
+  PROPS_ARRAY_TYPE_NAMES,
   PROPS_CROSS_FILE_RESOLUTION_EXTENSIONS,
   PROPS_DATE_NAME_HINTS,
   PROPS_DATE_PLACEHOLDER_ISO,
@@ -12,6 +13,7 @@ import {
   PROPS_FORWARD_REF_NAMES,
   PROPS_NODE_NAME_HINTS,
   PROPS_NODE_TYPE_REFERENCE_NAMES,
+  PROPS_OBJECT_TYPE_NAMES,
   PROPS_REF_TYPE_NAMES,
   PROPS_TYPE_RESOLUTION_MAX_HOPS,
   PROPS_UTILITY_TYPE_NAMES,
@@ -481,6 +483,9 @@ const classifyType = (
     }
     case "TSTypeReference": {
       if (isNodeLikeReference(typeNode)) return { kind: "node" };
+      const referenceName = resolveTypeReferenceName(typeNode);
+      if (referenceName && PROPS_ARRAY_TYPE_NAMES.has(referenceName)) return { kind: "array" };
+      if (referenceName && PROPS_OBJECT_TYPE_NAMES.has(referenceName)) return { kind: "object" };
       return { kind: "unknown" };
     }
     default: {
@@ -1124,6 +1129,12 @@ const resolveValueBindingToFunction = (
     const aliasBinding = bindings.valueBindings.get(aliasName);
     if (!aliasBinding) return undefined;
     return resolveValueBindingToFunction(aliasBinding, bindings, seen);
+  }
+
+  if (unwrapped.type === "MemberExpression") {
+    return {
+      functionNode: { type: "OpenstoryAliasComponent", params: [] } as unknown as AstNode,
+    };
   }
 
   return undefined;
