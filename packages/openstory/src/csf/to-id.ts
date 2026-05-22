@@ -5,7 +5,7 @@ const COLLAPSE_HYPHENS_RE = /-+/g;
 const LEADING_HYPHENS_RE = /^-+/;
 const TRAILING_HYPHENS_RE = /-+$/;
 
-export const sanitize = (input: string): string =>
+const sanitize = (input: string): string =>
   input
     .toLowerCase()
     .replace(SANITIZE_PUNCTUATION_RE, "-")

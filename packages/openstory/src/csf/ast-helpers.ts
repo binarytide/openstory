@@ -3,20 +3,15 @@ export interface AstNode {
   [key: string]: unknown;
 }
 
-export const COMPUTED_SENTINEL: { readonly __computed: true } = { __computed: true };
+const COMPUTED_SENTINEL: { readonly __computed: true } = { __computed: true };
 
-export const isComputedValue = (value: unknown): boolean =>
+const isComputedValue = (value: unknown): boolean =>
   typeof value === "object" &&
   value !== null &&
   !Array.isArray(value) &&
   "__computed" in (value as Record<string, unknown>);
 
 export const at = <TValue = AstNode>(node: AstNode, key: string): TValue => node[key] as TValue;
-
-export const atOrUndefined = <TValue = AstNode>(
-  node: AstNode | undefined | null,
-  key: string,
-): TValue | undefined => (node ? (node[key] as TValue | undefined) : undefined);
 
 export const unwrapTypeAnnotations = (node: AstNode | undefined | null): AstNode | undefined => {
   let current = node ?? undefined;
@@ -36,7 +31,7 @@ export const unwrapTypeAnnotations = (node: AstNode | undefined | null): AstNode
   return undefined;
 };
 
-export const getPropertyKey = (property: AstNode): string | undefined => {
+const getPropertyKey = (property: AstNode): string | undefined => {
   const keyNode = at(property, "key");
   if (keyNode.type === "Identifier") return at<string>(keyNode, "name");
   if (keyNode.type === "Literal") {

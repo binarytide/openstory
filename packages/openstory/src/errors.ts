@@ -61,18 +61,6 @@ export class OpenstoryConfigAmbiguousFrameworkError extends OpenstoryConfigError
   }
 }
 
-export class OpenstoryConfigPreviewNotFoundError extends OpenstoryConfigError {
-  override readonly code = "OpenstoryConfigPreviewNotFoundError";
-  constructor(searched: string[]) {
-    super(
-      `\`preview\` not found. Searched: ${searched.join(
-        ", ",
-      )}. Create preview.tsx at project root, or set \`preview\` in openstory() options.`,
-      { searched },
-    );
-  }
-}
-
 export class OpenstoryConfigMultiplePreviewsError extends OpenstoryConfigError {
   override readonly code = "OpenstoryConfigMultiplePreviewsError";
   constructor(found: string[]) {
