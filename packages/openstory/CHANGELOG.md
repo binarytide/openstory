@@ -26,6 +26,8 @@
 
 - Fix JSONC parser in `loadTsconfigPaths`: the previous regex-based comment stripper would eat content between `/*` inside `"@/*"` string keys and `*/` inside `"**/*.ts"` string values in tsconfig `paths` and `include` arrays, silently dropping all path-alias detection on real-world tsconfigs. Replaced with a string-aware scanner.
 
+- Fix `PLUGIN_ERROR: Missing field 'moduleType'` on Vite 8 / Rolldown. The plugin's `load` hook returned a bare string for the virtual story entry — Rolldown's stricter plugin API requires returning `{ code, moduleType }` when the load result is an object. Now returns `{ code, moduleType: "js" }`. Rollup-based Vite (≤7) ignores the extra field.
+
 - Read `OPENSTORY_VERSION` from `package.json` at runtime so the CLI's `--version` flag and manifest output stay in sync with the published package.
 
 ## 0.0.6

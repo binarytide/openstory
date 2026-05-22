@@ -321,12 +321,13 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
         throw new OpenstoryStoryNotFoundError(params.storyId, [...storiesById.keys()]);
       }
       const storyAbsolutePath = await resolveStoryAbsolutePath(story);
-      return synthesizeStoryEntry({
+      const code = synthesizeStoryEntry({
         story,
         framework,
         previewPath,
         storyAbsolutePath,
       });
+      return { code, moduleType: "js" };
     },
   };
 };
