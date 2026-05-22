@@ -6,9 +6,36 @@ import {
   VIRTUAL_NULL_PREFIX,
   VIRTUAL_STORY_ENTRY_ID,
 } from "../constants.js";
-import type { Framework, ManifestStory } from "../types.js";
+import type { Framework, ManifestStory, ManifestStorySynthesized } from "../types.js";
 import { escapeAttribute } from "../utils/escape-attribute.js";
 import { toFsId } from "../utils/to-fs-id.js";
+
+interface ComponentFrameworkHelpers {
+  importLine: string;
+  renderExpression: (componentLocal: string) => string;
+}
+
+const COMPONENT_FRAMEWORK_HELPERS: Record<Framework, ComponentFrameworkHelpers> = {
+  react: {
+    importLine: `import { createElement as __openstoryCreateElement } from "react";`,
+    renderExpression: (componentLocal) =>
+      `(args) => __openstoryCreateElement(${componentLocal}, args)`,
+  },
+  solid: {
+    importLine: `import { createComponent as __openstoryCreateComponent } from "solid-js";`,
+    renderExpression: (componentLocal) =>
+      `(args) => __openstoryCreateComponent(${componentLocal}, args)`,
+  },
+  vue: {
+    importLine: `import { h as __openstoryH } from "vue";`,
+    renderExpression: (componentLocal) => `(args) => __openstoryH(${componentLocal}, args)`,
+  },
+  svelte: {
+    importLine: "",
+    renderExpression: (componentLocal) =>
+      `(args) => ({ component: ${componentLocal}, props: args })`,
+  },
+};
 
 export interface RenderStoryIframeHtmlOptions {
   story: ManifestStory;
@@ -87,6 +114,17 @@ export const synthesizeStoryEntry = (options: SynthesizeEntryOptions): string =>
     ? `import preview from ${JSON.stringify(toFsId(previewPath))};`
     : "const preview = undefined;";
 
+  if (story.synthesized) {
+    return synthesizeComponentStoryEntry({
+      story,
+      synthesized: story.synthesized,
+      framework,
+      adapterSpecifier,
+      previewImport,
+      storyAbsolutePath,
+    });
+  }
+
   return `import { renderer } from ${JSON.stringify(adapterSpecifier)};
 import { boot } from "openstory/boot";
 ${previewImport}
@@ -98,6 +136,54 @@ boot({
   renderer,
   preview,
   storyModule,
+});
+
+if (import.meta.hot) {
+  import.meta.hot.accept(() => {
+    import.meta.hot.invalidate();
+  });
+}
+`;
+};
+
+interface SynthesizeComponentEntryOptions {
+  story: ManifestStory;
+  synthesized: ManifestStorySynthesized;
+  framework: Framework;
+  adapterSpecifier: string | undefined;
+  previewImport: string;
+  storyAbsolutePath: string;
+}
+
+const synthesizeComponentStoryEntry = (options: SynthesizeComponentEntryOptions): string => {
+  const { story, synthesized, framework, adapterSpecifier, previewImport, storyAbsolutePath } =
+    options;
+  const helpers = COMPONENT_FRAMEWORK_HELPERS[framework];
+  const helperImport = helpers.importLine ? `${helpers.importLine}\n` : "";
+  const renderExpression = helpers.renderExpression("__openstoryComponent");
+
+  return `import { renderer } from ${JSON.stringify(adapterSpecifier)};
+import { boot } from "openstory/boot";
+${previewImport}
+import * as __openstoryComponentModule from ${JSON.stringify(toFsId(storyAbsolutePath))};
+${helperImport}
+const __openstoryComponent = __openstoryComponentModule[${JSON.stringify(synthesized.componentExport)}];
+const __openstoryMeta = {
+  title: ${JSON.stringify(story.title)},
+  component: __openstoryComponent,
+  tags: ${JSON.stringify(story.tags)},
+};
+const __openstoryStory = {
+  name: ${JSON.stringify(story.name)},
+  render: ${renderExpression},
+};
+
+boot({
+  id: ${JSON.stringify(story.id)},
+  exportName: "Default",
+  renderer,
+  preview,
+  storyModule: { default: __openstoryMeta, Default: __openstoryStory },
 });
 
 if (import.meta.hot) {

@@ -6,6 +6,8 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Connect, Plugin, ViteDevServer } from "vite";
 
 import {
+  COMPONENT_IGNORE_GLOBS,
+  DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK,
   DEFAULT_IGNORE_GLOBS,
   DEFAULT_STORY_GLOBS,
   MANIFEST_PATH,
@@ -15,6 +17,7 @@ import {
 import { OpenstoryStoryNotFoundError } from "../errors.js";
 import type { Framework, Manifest, ManifestStory } from "../types.js";
 
+import { type ComponentStoriesConfig } from "./component-stories.js";
 import { detectFramework } from "./framework-detection.js";
 import { ManifestBuilder } from "./manifest.js";
 import { findPreviewFile } from "./preview-discovery.js";
@@ -31,6 +34,11 @@ export interface OpenstoryUiOptions {
   theme?: "dark" | "light" | "system";
 }
 
+export interface OpenstoryComponentsOption {
+  include?: string | string[];
+  ignore?: string[];
+}
+
 export interface OpenstoryOptions {
   stories?: string | string[];
   ignore?: string[];
@@ -38,6 +46,7 @@ export interface OpenstoryOptions {
   preview?: string;
   ui?: OpenstoryUiOptions;
   port?: number;
+  components?: boolean | OpenstoryComponentsOption;
 }
 
 export const defineOpenstory = (options: OpenstoryOptions): OpenstoryOptions => options;
@@ -82,6 +91,28 @@ const sendErrorResponse = (response: ServerResponse, error: unknown): void => {
 const normalizeStories = (stories: OpenstoryOptions["stories"]): string[] => {
   if (!stories) return DEFAULT_STORY_GLOBS;
   return Array.isArray(stories) ? stories : [stories];
+};
+
+const normalizeComponentsOption = (
+  option: OpenstoryOptions["components"],
+  framework: Framework,
+): ComponentStoriesConfig | undefined => {
+  if (!option) return undefined;
+  const includeSource =
+    typeof option === "object" && option.include !== undefined
+      ? option.include
+      : DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK[framework];
+  const include = Array.isArray(includeSource)
+    ? includeSource
+    : includeSource !== undefined
+      ? [includeSource]
+      : [];
+  const userIgnore =
+    typeof option === "object" && Array.isArray(option.ignore) ? option.ignore : [];
+  return {
+    include,
+    ignore: [...DEFAULT_IGNORE_GLOBS, ...COMPONENT_IGNORE_GLOBS, ...userIgnore],
+  };
 };
 
 const resolvePathOption = (projectRoot: string, value: string): string =>
@@ -208,6 +239,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
   let projectRoot = process.cwd();
   let framework: Framework = "react";
   let previewPath: string | undefined;
+  let componentsConfig: ComponentStoriesConfig | undefined;
   let builder: ManifestBuilder;
   let snapshotPromise: Promise<ManifestSnapshot> | undefined;
 
@@ -241,6 +273,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
       previewPath = userOptions.preview
         ? resolvePathOption(projectRoot, userOptions.preview)
         : await findPreviewFile(projectRoot);
+      componentsConfig = normalizeComponentsOption(userOptions.components, framework);
 
       builder = new ManifestBuilder({
         projectRoot,
@@ -248,6 +281,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
         ignore: ignoreGlobs,
         framework,
         previewPath,
+        components: componentsConfig,
       });
     },
 
@@ -264,6 +298,9 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
 
     handleHotUpdate: (ctx) => {
       if (/\.stories\.[tj]sx?$/.test(ctx.file)) {
+        invalidateManifest(ctx.file);
+      }
+      if (componentsConfig) {
         invalidateManifest(ctx.file);
       }
       if (previewPath && ctx.file === previewPath) {

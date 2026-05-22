@@ -8,6 +8,7 @@ import { OpenstoryCsfDuplicateStoryIdError } from "../errors.js";
 import { parseCsf, type ParsedStory } from "../csf/parser.js";
 import { parsePreview } from "../csf/preview-parser.js";
 import type { Framework, GlobalType, Manifest, ManifestStory, StoryParameters } from "../types.js";
+import { ComponentStoriesBuilder, type ComponentStoriesConfig } from "./component-stories.js";
 
 export interface BuildManifestOptions {
   projectRoot: string;
@@ -16,6 +17,7 @@ export interface BuildManifestOptions {
   framework: Framework;
   previewPath?: string;
   devServer?: ViteDevServer;
+  components?: ComponentStoriesConfig;
 }
 
 export interface ManifestCacheEntry {
@@ -67,12 +69,16 @@ const parsedStoryToManifestStory = (
 export class ManifestBuilder {
   private cache = new Map<string, ManifestCacheEntry>();
   private previewCache: { mtime: number; meta: PreviewMetadata } | undefined;
+  private componentStoriesBuilder: ComponentStoriesBuilder | undefined;
   private devServer: ViteDevServer | undefined;
   private readonly options: BuildManifestOptions;
 
   constructor(options: BuildManifestOptions) {
     this.options = options;
     this.devServer = options.devServer;
+    if (options.components) {
+      this.componentStoriesBuilder = new ComponentStoriesBuilder();
+    }
   }
 
   attachDevServer = (server: ViteDevServer): void => {
@@ -83,12 +89,14 @@ export class ManifestBuilder {
     if (absolutePath === undefined) {
       this.cache.clear();
       this.previewCache = undefined;
+      this.componentStoriesBuilder?.invalidate();
       return;
     }
     this.cache.delete(absolutePath);
     if (this.options.previewPath === absolutePath) {
       this.previewCache = undefined;
     }
+    this.componentStoriesBuilder?.invalidate(absolutePath);
   };
 
   build = async (): Promise<Manifest> => {
@@ -104,6 +112,19 @@ export class ManifestBuilder {
     for (const absolutePath of storyFiles) {
       const cacheEntry = await this.parseStoryFile(absolutePath);
       allStories.push(...cacheEntry.stories);
+    }
+
+    if (this.componentStoriesBuilder && this.options.components) {
+      const userStoryIds = new Set(allStories.map((story) => story.id));
+      const synthesizedStories = await this.componentStoriesBuilder.build({
+        projectRoot: this.options.projectRoot,
+        framework: this.options.framework,
+        config: this.options.components,
+      });
+      for (const synthesizedStory of synthesizedStories) {
+        if (userStoryIds.has(synthesizedStory.id)) continue;
+        allStories.push(synthesizedStory);
+      }
     }
 
     const importPathsById = new Map<string, string[]>();

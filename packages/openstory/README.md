@@ -155,12 +155,48 @@ Swap your story imports. `meta`, `decorators`, `parameters`, `globalTypes`, `ini
 
 ```
 openstory dev        start the dev server
-openstory build      write a static deployable site to dist/
+openstory build      build a static deployable site
 openstory preview    serve the built site
 openstory init       scaffold preview + vite config (react|solid|vue|svelte)
 openstory list       print manifest (--json for raw)
 openstory inspect    print details for one story (--json for raw)
 ```
+
+### Component-driven stories (no files on disk)
+
+Pass `--components` to `dev` or `build` to synthesize a story for every component in the repo **on the fly**. Nothing is written to disk. The manifest, the iframe HTML, and the per-story virtual module are all generated in memory and stay in sync with your source as you edit.
+
+```bash
+pnpm exec openstory dev --components
+pnpm exec openstory dev --components --components-include "src/ui/**/*.tsx"
+pnpm exec openstory build --components --out dist
+```
+
+Flags (shared by `dev` and `build`):
+
+```
+--components                       enable component-driven story synthesis
+--components-include <glob>        custom component glob (repeatable; defaults to framework)
+--components-ignore <glob>         additional ignore glob (repeatable)
+```
+
+The same option is available programmatically — symmetric with `stories`:
+
+```ts
+import { openstory } from "openstory/plugin";
+
+openstory({ stories: ["**/*.stories.tsx"] });
+openstory({ components: true });
+openstory({ components: { include: ["src/ui/**/*.tsx"], ignore: ["**/*-internal.tsx"] } });
+```
+
+Detection rules:
+
+- React / Solid: any PascalCase named export, plus default exports, in `.tsx`/`.jsx` files.
+- Vue: each `.vue` SFC, named from its filename.
+- Svelte: each `.svelte` component, named from its filename.
+
+Hand-written `*.stories.*` files always win over synthesized ones when their story ids collide.
 
 See [`packages/openstory/src/types.ts`](https://github.com/millionco/openstory/blob/main/packages/openstory/src/types.ts) for the full `Meta`, `StoryObj`, `Preview`, `Decorator`, `PlayFunction`, and `OpenstoryRenderer` interfaces.
 
