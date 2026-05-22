@@ -73,12 +73,12 @@ importers:
 
   packages/openstory:
     dependencies:
+      commander:
+        specifier: ^14.0.3
+        version: 14.0.3
       fast-glob:
         specifier: ^3.3.2
         version: 3.3.3
-      mri:
-        specifier: ^1.2.0
-        version: 1.2.0
       oxc-parser:
         specifier: ^0.108.0
         version: 0.108.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
@@ -2095,6 +2095,10 @@ packages:
   clsx@2.1.1:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
+
+  commander@14.0.3:
+    resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
+    engines: {node: '>=20'}
 
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
@@ -4575,6 +4579,8 @@ snapshots:
   client-only@0.0.1: {}
 
   clsx@2.1.1: {}
+
+  commander@14.0.3: {}
 
   convert-source-map@2.0.0: {}
 

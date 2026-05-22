@@ -1,11 +1,4 @@
-export type OpenstoryErrorCategory =
-  | "config"
-  | "csf"
-  | "render"
-  | "adapter"
-  | "cli"
-  | "build"
-  | "plugin";
+export type OpenstoryErrorCategory = "config" | "csf" | "render" | "adapter" | "build" | "plugin";
 
 export interface OpenstoryErrorData {
   [key: string]: unknown;
@@ -247,26 +240,6 @@ export class OpenstoryPluginManifestSchemaError extends OpenstoryPluginError {
   override readonly code = "OpenstoryPluginManifestSchemaError";
   constructor(reason: string) {
     super(`Manifest schema validation failed: ${reason}.`, { reason });
-  }
-}
-
-export class OpenstoryCliError extends OpenstoryError {
-  readonly category = "cli" as const;
-  readonly exitCode = 1;
-  readonly code: string = "OpenstoryCliError";
-}
-
-export class OpenstoryCliUnknownCommandError extends OpenstoryCliError {
-  override readonly code = "OpenstoryCliUnknownCommandError";
-  constructor(cmd: string, known: string[]) {
-    super(`Unknown command "${cmd}". Available: ${known.join(", ")}.`, { cmd, known });
-  }
-}
-
-export class OpenstoryCliMissingArgError extends OpenstoryCliError {
-  override readonly code = "OpenstoryCliMissingArgError";
-  constructor(cmd: string, arg: string) {
-    super(`\`openstory ${cmd}\` requires \`<${arg}>\` argument.`, { cmd, arg });
   }
 }
 

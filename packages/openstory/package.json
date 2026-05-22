@@ -95,8 +95,8 @@
     "check:errors": "node ./scripts/check-errors.mjs"
   },
   "dependencies": {
+    "commander": "^14.0.3",
     "fast-glob": "^3.3.2",
-    "mri": "^1.2.0",
     "oxc-parser": "^0.108.0"
   },
   "devDependencies": {
