@@ -14,8 +14,48 @@ export interface TsconfigPaths {
   mappings: PathMapping[];
 }
 
-const stripJsonComments = (source: string): string =>
-  source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
+const stripJsonComments = (source: string): string => {
+  const output: string[] = [];
+  const length = source.length;
+  let cursor = 0;
+  while (cursor < length) {
+    const character = source[cursor]!;
+    if (character === '"') {
+      output.push(character);
+      cursor += 1;
+      while (cursor < length && source[cursor] !== '"') {
+        if (source[cursor] === "\\" && cursor + 1 < length) {
+          output.push(source[cursor]!, source[cursor + 1]!);
+          cursor += 2;
+        } else {
+          output.push(source[cursor]!);
+          cursor += 1;
+        }
+      }
+      if (cursor < length) {
+        output.push(source[cursor]!);
+        cursor += 1;
+      }
+      continue;
+    }
+    if (character === "/" && source[cursor + 1] === "/") {
+      cursor += 2;
+      while (cursor < length && source[cursor] !== "\n") cursor += 1;
+      continue;
+    }
+    if (character === "/" && source[cursor + 1] === "*") {
+      cursor += 2;
+      while (cursor < length && !(source[cursor] === "*" && source[cursor + 1] === "/")) {
+        cursor += 1;
+      }
+      if (cursor < length) cursor += 2;
+      continue;
+    }
+    output.push(character);
+    cursor += 1;
+  }
+  return output.join("");
+};
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);

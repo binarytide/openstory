@@ -22,6 +22,10 @@
 
 - Story module imports inside the virtual story entry are now dynamic (`import()` wrapped in `try/catch`) so module-evaluation-time errors (e.g. `t3-env`'s "Attempted to access a server-side environment variable on the client" at top-level import time) surface in the iframe via the existing `surfaceFatalMessage` path instead of escaping as an uncaught `ReferenceError`. Pairs with the React render-time error boundary so both classes of failure show the user a clean diagnostic panel.
 
+- Add `openstory setup` — single command that detects framework / Next / React Query / Radix Tooltip / shadcn sidebar / globals.css / tsconfig path aliases / package manager, installs missing peer deps (`vite`, framework plugin), scaffolds a project-aware `vite.config.ts` + `preview.tsx` (path aliases, React dedupe, `next/navigation` mock, `process.env` polyfill, `require` polyfill, provider decorators, globals.css import — whatever's relevant), and runs `openstory generate`. Zero-to-stories in one step. Existing `openstory init` is unchanged for users who only want the bare scaffold.
+
+- Fix JSONC parser in `loadTsconfigPaths`: the previous regex-based comment stripper would eat content between `/*` inside `"@/*"` string keys and `*/` inside `"**/*.ts"` string values in tsconfig `paths` and `include` arrays, silently dropping all path-alias detection on real-world tsconfigs. Replaced with a string-aware scanner.
+
 - Read `OPENSTORY_VERSION` from `package.json` at runtime so the CLI's `--version` flag and manifest output stay in sync with the published package.
 
 ## 0.0.6
