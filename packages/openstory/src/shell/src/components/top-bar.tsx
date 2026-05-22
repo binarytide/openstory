@@ -45,7 +45,12 @@ export const TopBar = ({
         <Sidebar className="h-4 w-4" />
       </Button>
       <Separator orientation="vertical" className="hidden h-6 sm:block" />
-      <div className="truncate text-sm font-semibold tracking-tight">Openstory</div>
+      <div
+        className="truncate text-sm font-semibold tracking-tight"
+        title={manifest.projectRoot}
+      >
+        {manifest.projectName}
+      </div>
 
       <div className="min-w-0 flex-1" />
 

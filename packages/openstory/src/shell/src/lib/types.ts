@@ -38,6 +38,8 @@ export interface Manifest {
   v: 1;
   generatedAt: string;
   framework: "react" | "solid";
+  projectName: string;
+  projectRoot: string;
   openstoryVersion: string;
   stories: ManifestStory[];
   globalTypes: Record<string, GlobalType>;

@@ -5,6 +5,7 @@ import type { ViteDevServer } from "vite";
 
 import { OPENSTORY_VERSION } from "../constants.js";
 import { OpenstoryCsfDuplicateStoryIdError } from "../errors.js";
+import { resolveProjectDisplay } from "../utils/resolve-project-display.js";
 import { parseCsf, type ParsedStory } from "../csf/parser.js";
 import { parsePreview } from "../csf/preview-parser.js";
 import type { Framework, GlobalType, Manifest, ManifestStory, StoryParameters } from "../types.js";
@@ -143,11 +144,14 @@ export class ManifestBuilder {
     }
 
     const previewMetadata = await this.loadPreviewMetadata();
+    const { projectName, projectRoot } = await resolveProjectDisplay(this.options.projectRoot);
 
     return {
       v: 1,
       generatedAt: new Date().toISOString(),
       framework: this.options.framework,
+      projectName,
+      projectRoot,
       openstoryVersion: OPENSTORY_VERSION,
       stories: allStories,
       globalTypes: previewMetadata.globalTypes,

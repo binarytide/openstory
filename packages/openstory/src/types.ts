@@ -4,6 +4,8 @@ export interface Manifest {
   v: 1;
   generatedAt: string;
   framework: Framework;
+  projectName: string;
+  projectRoot: string;
   openstoryVersion: string;
   stories: ManifestStory[];
   globalTypes: Record<string, GlobalType>;
