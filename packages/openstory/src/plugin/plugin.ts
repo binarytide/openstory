@@ -243,6 +243,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
   let componentsConfig: ComponentStoriesConfig | undefined;
   let builder: ManifestBuilder;
   let snapshotPromise: Promise<ManifestSnapshot> | undefined;
+  let isPrimaryInstance = true;
 
   const invalidateManifest = (absolutePath?: string): void => {
     builder?.invalidate(absolutePath);
@@ -269,7 +270,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
   const runtimeDedupeSpecifiers = (forFramework: Framework): string[] =>
     forFramework === "react" ? ["react", "react-dom"] : [];
 
-  return {
+  const pluginInstance: Plugin = {
     name: "openstory",
     enforce: "pre",
 
@@ -293,6 +294,12 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
     },
 
     configResolved: async (resolved) => {
+      const openstoryPlugins = resolved.plugins.filter((plugin) => plugin.name === "openstory");
+      if (openstoryPlugins.length > 1 && openstoryPlugins[0] !== pluginInstance) {
+        isPrimaryInstance = false;
+        return;
+      }
+
       projectRoot = resolved.root;
       framework = userOptions.framework ?? (await detectFramework(projectRoot));
       previewPath = userOptions.preview
@@ -311,6 +318,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
     },
 
     configureServer: (server) => {
+      if (!isPrimaryInstance) return;
       builder.attachDevServer(server);
 
       server.watcher.on("add", (path) => invalidateManifest(path));
@@ -322,6 +330,7 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
     },
 
     handleHotUpdate: (ctx) => {
+      if (!isPrimaryInstance) return;
       if (/\.stories\.[tj]sx?$/.test(ctx.file)) {
         invalidateManifest(ctx.file);
       }
@@ -334,9 +343,13 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
       }
     },
 
-    resolveId: (id) => (isStoryEntryId(id) ? resolveStoryEntryId(id) : null),
+    resolveId: (id) => {
+      if (!isPrimaryInstance) return null;
+      return isStoryEntryId(id) ? resolveStoryEntryId(id) : null;
+    },
 
     load: async (id) => {
+      if (!isPrimaryInstance) return null;
       const params = parseStoryEntryParams(id);
       if (!params) return null;
       const { storiesById } = await getSnapshot();
@@ -354,4 +367,5 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
       return { code, moduleType: "js" };
     },
   };
+  return pluginInstance;
 };

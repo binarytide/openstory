@@ -64,6 +64,46 @@ describe("openstory plugin config hook", () => {
     expect(callConfigHook(plugin, { root: projectRoot })).toBeNull();
   });
 
+  it("when two openstory plugin instances are present, only the first acts as primary", async () => {
+    const primary = openstory({ framework: "react" });
+    const secondary = openstory({ framework: "react" });
+    const fakeResolved = {
+      root: projectRoot,
+      plugins: [primary, secondary],
+    } as never;
+    const callConfigResolved = async (plugin: Plugin): Promise<void> => {
+      const hook = plugin.configResolved;
+      if (typeof hook !== "function") return;
+      await (hook as (config: typeof fakeResolved) => Promise<void> | void)(fakeResolved);
+    };
+    await writePackageJson({ dependencies: { react: "^19.0.0" } });
+    await callConfigResolved(primary);
+    await callConfigResolved(secondary);
+    const fakeServer = {
+      watcher: { on: () => {} },
+      middlewares: { use: () => {} },
+    } as never;
+    const middlewareUses: string[] = [];
+    const trackedServer = {
+      watcher: { on: () => {} },
+      middlewares: { use: (...args: unknown[]) => middlewareUses.push(String(args[0] ?? "fn")) },
+    } as never;
+    const primaryConfigureServer = primary.configureServer as
+      | ((server: typeof fakeServer) => void)
+      | undefined;
+    const secondaryConfigureServer = secondary.configureServer as
+      | ((server: typeof fakeServer) => void)
+      | undefined;
+    if (primaryConfigureServer) primaryConfigureServer(trackedServer);
+    if (secondaryConfigureServer) secondaryConfigureServer(trackedServer);
+    expect(middlewareUses.length).toBeGreaterThan(0);
+    const primaryMwCount = middlewareUses.length;
+    middlewareUses.length = 0;
+    if (secondaryConfigureServer) secondaryConfigureServer(trackedServer);
+    expect(middlewareUses).toHaveLength(0);
+    expect(primaryMwCount).toBeGreaterThan(0);
+  });
+
   it("merges with existing optimizeDeps.include without duplicating", () => {
     const plugin = openstory({ framework: "react" });
     const result = callConfigHook(plugin, {
