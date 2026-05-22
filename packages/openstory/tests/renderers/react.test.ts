@@ -1,7 +1,7 @@
-import { createElement } from "react";
+import { createElement, useState } from "react";
 import { describe, expect, it } from "vitest";
 import { renderer } from "../../src/react/renderer.js";
-import { exerciseRenderer } from "./test-utils.js";
+import { buildContext, exerciseRenderer, waitForText } from "./test-utils.js";
 
 interface ButtonArgs {
   label: string;
@@ -19,5 +19,27 @@ describe("react renderer", () => {
     });
     expect(result.initialText).toContain("hello-react");
     expect(result.updatedText).toContain("goodbye-react");
+  });
+
+  it("supports hooks called directly inside the render function", async () => {
+    const renderWithHooks = (args: ButtonArgs) => {
+      const [counter] = useState(7);
+      return createElement("span", { "data-testid": "hook-output" }, `${args.label}-${counter}`);
+    };
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    try {
+      const mounted = renderer.mount({
+        container,
+        render: renderWithHooks as never,
+        args: { label: "with-hook" },
+        context: buildContext(container, { label: "with-hook" }),
+      });
+      await waitForText(container, "with-hook-7");
+      expect(container.textContent).toContain("with-hook-7");
+      renderer.unmount(mounted);
+    } finally {
+      container.remove();
+    }
   });
 });

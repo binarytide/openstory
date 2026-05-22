@@ -62,7 +62,7 @@ interface ReactDomClient {
 
 interface ReactMounted {
   dispose: () => void;
-  rerender: (vnode: unknown) => void;
+  rerender: (props: unknown) => void;
 }
 
 let cachedReactDomClient: ReactDomClient | undefined;
@@ -87,12 +87,21 @@ const defaultRender =
     return createElement(component as ElementType, componentProps as Record<string, unknown>);
   };
 
+interface StoryRenderHostProps {
+  render: (args: unknown, context: StoryContext<unknown>) => unknown;
+  args: unknown;
+  context: StoryContext<unknown>;
+}
+
+const StoryRenderHost = ({ render, args, context }: StoryRenderHostProps): ReactNode =>
+  render(args, context) as ReactNode;
+
 let resetKeyCounter = 0;
 
-const wrapInErrorBoundary = (storyVnode: unknown): ReactNode =>
+const wrapStory = (props: StoryRenderHostProps): ReactNode =>
   createElement(StoryErrorBoundary, {
     resetKey: ++resetKeyCounter,
-    children: storyVnode as ReactNode,
+    children: createElement(StoryRenderHost, props),
   });
 
 export const renderer: OpenstoryRenderer<unknown, ReactMounted> = {
@@ -101,19 +110,21 @@ export const renderer: OpenstoryRenderer<unknown, ReactMounted> = {
     let reactRoot: ReturnType<ReactDomClient["createRoot"]> | undefined;
     const mounted: ReactMounted = {
       dispose: () => reactRoot?.unmount(),
-      rerender: (vnode) => reactRoot?.render(wrapInErrorBoundary(vnode)),
+      rerender: (props) => reactRoot?.render(wrapStory(props as StoryRenderHostProps)),
     };
     void (async () => {
       const { createRoot } = await ensureReactDom();
       reactRoot = createRoot(container);
-      reactRoot.render(wrapInErrorBoundary(render(args, context)));
-      mounted.dispose = () => reactRoot?.unmount();
-      mounted.rerender = (vnode) => reactRoot?.render(wrapInErrorBoundary(vnode));
+      reactRoot.render(wrapStory({ render, args, context }));
     })();
     return mounted;
   },
   update: (mounted, options) => {
-    mounted.rerender(options.render(options.args, options.context));
+    mounted.rerender({
+      render: options.render,
+      args: options.args,
+      context: options.context,
+    });
   },
   unmount: (mounted) => {
     mounted.dispose();
