@@ -264,9 +264,31 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
   const resolveStoryAbsolutePath = async (story: ManifestStory): Promise<string> =>
     isAbsolute(story.importPath) ? story.importPath : resolve(projectRoot, story.importPath);
 
+  const earlyFramework = userOptions.framework ?? "react";
+  const runtimeOptimizeDepsIncludes = (forFramework: Framework): string[] =>
+    forFramework === "react" ? ["react", "react-dom", "react-dom/client"] : [];
+  const runtimeDedupeSpecifiers = (forFramework: Framework): string[] =>
+    forFramework === "react" ? ["react", "react-dom"] : [];
+
   return {
     name: "openstory",
     enforce: "pre",
+
+    config: (existingConfig) => {
+      const includesForFramework = runtimeOptimizeDepsIncludes(earlyFramework);
+      const dedupeSpecifiers = runtimeDedupeSpecifiers(earlyFramework);
+      if (includesForFramework.length === 0 && dedupeSpecifiers.length === 0) return null;
+      const existingIncludes = existingConfig.optimizeDeps?.include ?? [];
+      const existingDedupe = existingConfig.resolve?.dedupe ?? [];
+      return {
+        resolve: {
+          dedupe: [...new Set([...existingDedupe, ...dedupeSpecifiers])],
+        },
+        optimizeDeps: {
+          include: [...new Set([...existingIncludes, ...includesForFramework])],
+        },
+      };
+    },
 
     configResolved: async (resolved) => {
       projectRoot = resolved.root;
