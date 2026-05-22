@@ -42,4 +42,60 @@ describe("react renderer", () => {
       container.remove();
     }
   });
+
+  it("preserves hook state across args updates", async () => {
+    const renderWithStableHook = (args: ButtonArgs) => {
+      const [initialLabelSnapshot] = useState(args.label);
+      return createElement(
+        "span",
+        { "data-testid": "snapshot-output" },
+        `current=${args.label}|first=${initialLabelSnapshot}`,
+      );
+    };
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    try {
+      const mounted = renderer.mount({
+        container,
+        render: renderWithStableHook as never,
+        args: { label: "first-args" },
+        context: buildContext(container, { label: "first-args" }),
+      });
+      await waitForText(container, "current=first-args|first=first-args");
+      renderer.update(mounted, {
+        render: renderWithStableHook as never,
+        args: { label: "second-args" },
+        context: buildContext(container, { label: "second-args" }),
+      });
+      await waitForText(container, "current=second-args|first=first-args");
+      renderer.unmount(mounted);
+    } finally {
+      container.remove();
+    }
+  });
+
+  it("ignores update calls made before the async react-dom/client import resolves", async () => {
+    const renderLabel = (args: ButtonArgs) =>
+      createElement("span", { "data-testid": "race-output" }, args.label);
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    try {
+      const mounted = renderer.mount({
+        container,
+        render: renderLabel as never,
+        args: { label: "initial-args" },
+        context: buildContext(container, { label: "initial-args" }),
+      });
+      renderer.update(mounted, {
+        render: renderLabel as never,
+        args: { label: "updated-args-before-mount-resolved" },
+        context: buildContext(container, { label: "updated-args-before-mount-resolved" }),
+      });
+      await waitForText(container, "updated-args-before-mount-resolved");
+      expect(container.textContent).toContain("updated-args-before-mount-resolved");
+      renderer.unmount(mounted);
+    } finally {
+      container.remove();
+    }
+  });
 });

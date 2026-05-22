@@ -18,7 +18,7 @@ import { OpenstoryStoryNotFoundError } from "../errors.js";
 import type { Framework, Manifest, ManifestStory } from "../types.js";
 
 import { type ComponentStoriesConfig } from "./component-stories.js";
-import { detectFramework } from "./framework-detection.js";
+import { detectFramework, detectFrameworkSyncOrFallback } from "./framework-detection.js";
 import { ManifestBuilder } from "./manifest.js";
 import { findPreviewFile } from "./preview-discovery.js";
 import {
@@ -264,7 +264,6 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
   const resolveStoryAbsolutePath = async (story: ManifestStory): Promise<string> =>
     isAbsolute(story.importPath) ? story.importPath : resolve(projectRoot, story.importPath);
 
-  const earlyFramework = userOptions.framework ?? "react";
   const runtimeOptimizeDepsIncludes = (forFramework: Framework): string[] =>
     forFramework === "react" ? ["react", "react-dom", "react-dom/client"] : [];
   const runtimeDedupeSpecifiers = (forFramework: Framework): string[] =>
@@ -275,8 +274,11 @@ export const openstory = (userOptions: OpenstoryOptions = {}): Plugin => {
     enforce: "pre",
 
     config: (existingConfig) => {
-      const includesForFramework = runtimeOptimizeDepsIncludes(earlyFramework);
-      const dedupeSpecifiers = runtimeDedupeSpecifiers(earlyFramework);
+      const rootDir = typeof existingConfig.root === "string" ? existingConfig.root : process.cwd();
+      const detectedFramework =
+        userOptions.framework ?? detectFrameworkSyncOrFallback(rootDir, "react");
+      const includesForFramework = runtimeOptimizeDepsIncludes(detectedFramework);
+      const dedupeSpecifiers = runtimeDedupeSpecifiers(detectedFramework);
       if (includesForFramework.length === 0 && dedupeSpecifiers.length === 0) return null;
       const existingIncludes = existingConfig.optimizeDeps?.include ?? [];
       const existingDedupe = existingConfig.resolve?.dedupe ?? [];

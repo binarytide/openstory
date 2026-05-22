@@ -85,9 +85,10 @@
     "access": "public"
   },
   "scripts": {
-    "build": "pnpm run build:shell && vp pack && pnpm run build:test-dts",
+    "build": "pnpm run clean && pnpm run build:shell && vp pack && pnpm run build:test-dts",
     "build:shell": "node ./scripts/build-shell.mjs",
     "build:test-dts": "node ./scripts/build-test-dts.mjs",
+    "clean": "rm -rf dist",
     "dev": "vp pack --watch",
     "test": "vp test",
     "test:integration": "vp test --project integration",

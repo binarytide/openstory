@@ -108,14 +108,23 @@ export const renderer: OpenstoryRenderer<unknown, ReactMounted> = {
   defaultRender,
   mount: ({ container, render, args, context }) => {
     let reactRoot: ReturnType<ReactDomClient["createRoot"]> | undefined;
+    let latestProps: StoryRenderHostProps = { render, args, context };
+    let unmountRequested = false;
     const mounted: ReactMounted = {
-      dispose: () => reactRoot?.unmount(),
-      rerender: (props) => reactRoot?.render(wrapStory(props as StoryRenderHostProps)),
+      dispose: () => {
+        unmountRequested = true;
+        reactRoot?.unmount();
+      },
+      rerender: (props) => {
+        latestProps = props as StoryRenderHostProps;
+        reactRoot?.render(wrapStory(latestProps));
+      },
     };
     void (async () => {
       const { createRoot } = await ensureReactDom();
+      if (unmountRequested) return;
       reactRoot = createRoot(container);
-      reactRoot.render(wrapStory({ render, args, context }));
+      reactRoot.render(wrapStory(latestProps));
     })();
     return mounted;
   },

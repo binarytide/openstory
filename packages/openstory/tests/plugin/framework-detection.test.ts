@@ -6,7 +6,10 @@ import {
   OpenstoryConfigAmbiguousFrameworkError,
   OpenstoryConfigMissingFrameworkError,
 } from "../../src/errors.js";
-import { detectFramework } from "../../src/plugin/framework-detection.js";
+import {
+  detectFramework,
+  detectFrameworkSyncOrFallback,
+} from "../../src/plugin/framework-detection.js";
 
 let projectRoot: string;
 
@@ -68,5 +71,25 @@ describe("detectFramework", () => {
     await expect(detectFramework(projectRoot)).rejects.toBeInstanceOf(
       OpenstoryConfigMissingFrameworkError,
     );
+  });
+});
+
+describe("detectFrameworkSyncOrFallback", () => {
+  it("returns the detected framework when a single one is present", async () => {
+    await writePackageJson({ devDependencies: { vue: "^3.5.0" } });
+    expect(detectFrameworkSyncOrFallback(projectRoot, "react")).toBe("vue");
+  });
+
+  it("returns the fallback when no framework is present", () => {
+    expect(detectFrameworkSyncOrFallback(projectRoot, "react")).toBe("react");
+  });
+
+  it("returns the fallback when multiple frameworks are ambiguous", async () => {
+    await writePackageJson({ dependencies: { react: "^19.0.0", vue: "^3.5.0" } });
+    expect(detectFrameworkSyncOrFallback(projectRoot, "svelte")).toBe("svelte");
+  });
+
+  it("returns the fallback when package.json cannot be read", () => {
+    expect(detectFrameworkSyncOrFallback("/does/not/exist", "react")).toBe("react");
   });
 });
