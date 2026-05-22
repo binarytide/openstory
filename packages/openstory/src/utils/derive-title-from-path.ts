@@ -10,12 +10,12 @@ const titleSegmentFromPathSegment = (segment: string): string => {
 export const deriveTitleFromPath = (relativePath: string): string => {
   const withoutExtension = relativePath.replace(/\.[^./]+$/, "");
   const normalized = withoutExtension.split("\\").join("/");
-  const segments = normalized
-    .split("/")
-    .filter((segment) => segment.length > 0 && segment !== "src");
-  if (segments.length === 0) return "Components";
-  return segments
-    .map((segment) => titleSegmentFromPathSegment(segment))
-    .filter((segment) => segment.length > 0)
-    .join("/");
+  const titleSegments: string[] = [];
+  for (const rawSegment of normalized.split("/")) {
+    if (rawSegment.length === 0 || rawSegment === "src") continue;
+    const titled = titleSegmentFromPathSegment(rawSegment);
+    if (titled.length > 0) titleSegments.push(titled);
+  }
+  if (titleSegments.length === 0) return "Components";
+  return titleSegments.join("/");
 };

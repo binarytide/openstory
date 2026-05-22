@@ -74,12 +74,11 @@ export class ComponentStoriesBuilder {
       followSymbolicLinks: false,
     });
 
-    const allStories: ManifestStory[] = [];
-    for (const absolutePath of componentFiles.sort()) {
-      const cacheEntry = await this.parseFile(absolutePath, options);
-      allStories.push(...cacheEntry.stories);
-    }
-    return allStories;
+    const sortedComponentFiles = componentFiles.sort();
+    const cacheEntries = await Promise.all(
+      sortedComponentFiles.map((absolutePath) => this.parseFile(absolutePath, options)),
+    );
+    return cacheEntries.flatMap((cacheEntry) => cacheEntry.stories);
   };
 
   private parseFile = async (

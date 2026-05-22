@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { openstory } from "../../src/plugin/index.js";
+import { openstory } from "../../src/plugin/plugin.js";
 
 let projectRoot: string;
 let server: import("vite").ViteDevServer;
