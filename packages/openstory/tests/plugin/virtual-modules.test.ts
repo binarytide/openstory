@@ -103,8 +103,9 @@ describe("synthesizeStoryEntry - regular stories", () => {
       previewPath: undefined,
       storyAbsolutePath: "/abs/src/components/Button.stories.tsx",
     });
-    expect(entry).toContain(`import * as storyModule from`);
+    expect(entry).toContain(`import(`);
     expect(entry).toContain(`exportName: "Primary"`);
+    expect(entry).toContain(`surfaceModuleLoadError`);
     expect(entry).not.toContain("__openstoryComponentModule");
   });
 });

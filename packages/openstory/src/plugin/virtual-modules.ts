@@ -128,17 +128,24 @@ export const synthesizeStoryEntry = (options: SynthesizeEntryOptions): string =>
   }
 
   return `import { renderer } from ${JSON.stringify(adapterSpecifier)};
-import { boot } from "openstory/boot";
+import { boot, surfaceModuleLoadError } from "openstory/boot";
 ${previewImport}
-import * as storyModule from ${JSON.stringify(toFsId(storyAbsolutePath))};
 
-boot({
-  id: ${JSON.stringify(story.id)},
-  exportName: ${JSON.stringify(story.exportName)},
-  renderer,
-  preview,
-  storyModule,
-});
+const __openstoryStoryModulePromise = import(${JSON.stringify(toFsId(storyAbsolutePath))});
+
+__openstoryStoryModulePromise
+  .then((storyModule) => {
+    boot({
+      id: ${JSON.stringify(story.id)},
+      exportName: ${JSON.stringify(story.exportName)},
+      renderer,
+      preview,
+      storyModule,
+    });
+  })
+  .catch((error) => {
+    surfaceModuleLoadError(${JSON.stringify(story.id)}, error);
+  });
 
 if (import.meta.hot) {
   import.meta.hot.accept(() => {
@@ -165,28 +172,32 @@ const synthesizeComponentStoryEntry = (options: SynthesizeComponentEntryOptions)
   const renderExpression = helpers.renderExpression("__openstoryComponent");
 
   return `import { renderer } from ${JSON.stringify(adapterSpecifier)};
-import { boot } from "openstory/boot";
+import { boot, surfaceModuleLoadError } from "openstory/boot";
 ${previewImport}
-import * as __openstoryComponentModule from ${JSON.stringify(toFsId(storyAbsolutePath))};
 ${helperImport}
-const __openstoryComponent = __openstoryComponentModule[${JSON.stringify(synthesized.componentExport)}];
-const __openstoryMeta = {
-  title: ${JSON.stringify(story.title)},
-  component: __openstoryComponent,
-  tags: ${JSON.stringify(story.tags)},
-};
-const __openstoryStory = {
-  name: ${JSON.stringify(story.name)},
-  render: ${renderExpression},
-};
-
-boot({
-  id: ${JSON.stringify(story.id)},
-  exportName: "Default",
-  renderer,
-  preview,
-  storyModule: { default: __openstoryMeta, Default: __openstoryStory },
-});
+import(${JSON.stringify(toFsId(storyAbsolutePath))})
+  .then((__openstoryComponentModule) => {
+    const __openstoryComponent = __openstoryComponentModule[${JSON.stringify(synthesized.componentExport)}];
+    const __openstoryMeta = {
+      title: ${JSON.stringify(story.title)},
+      component: __openstoryComponent,
+      tags: ${JSON.stringify(story.tags)},
+    };
+    const __openstoryStory = {
+      name: ${JSON.stringify(story.name)},
+      render: ${renderExpression},
+    };
+    boot({
+      id: ${JSON.stringify(story.id)},
+      exportName: "Default",
+      renderer,
+      preview,
+      storyModule: { default: __openstoryMeta, Default: __openstoryStory },
+    });
+  })
+  .catch((error) => {
+    surfaceModuleLoadError(${JSON.stringify(story.id)}, error);
+  });
 
 if (import.meta.hot) {
   import.meta.hot.accept(() => {

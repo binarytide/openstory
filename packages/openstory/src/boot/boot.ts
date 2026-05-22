@@ -189,6 +189,12 @@ const surfaceFatalMessage = (message: string): void => {
   node.appendChild(pre);
 };
 
+export const surfaceModuleLoadError = (storyId: string, error: unknown): void => {
+  const message =
+    error instanceof Error ? `${error.message}\n\n${error.stack ?? ""}` : String(error);
+  surfaceFatalMessage(`openstory: story "${escapeHtml(storyId)}" failed to load.\n\n${message}`);
+};
+
 export const boot = (options: BootOptions): void => {
   const container = document.getElementById(OPENSTORY_ROOT_ELEMENT_ID);
   if (!container) {

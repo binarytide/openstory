@@ -20,6 +20,8 @@
 
 - `document.title` now reflects the consumer's project (read from `manifest.projectName`). The shell page shows `"<project name>"` and per-story iframe pages show `"<story id> · <project name>"`. Both `openstory dev` and `openstory build` honor this.
 
+- Story module imports inside the virtual story entry are now dynamic (`import()` wrapped in `try/catch`) so module-evaluation-time errors (e.g. `t3-env`'s "Attempted to access a server-side environment variable on the client" at top-level import time) surface in the iframe via the existing `surfaceFatalMessage` path instead of escaping as an uncaught `ReferenceError`. Pairs with the React render-time error boundary so both classes of failure show the user a clean diagnostic panel.
+
 - Read `OPENSTORY_VERSION` from `package.json` at runtime so the CLI's `--version` flag and manifest output stay in sync with the published package.
 
 ## 0.0.6
