@@ -31,6 +31,11 @@ describe("detectFramework", () => {
     expect(await detectFramework(projectRoot)).toBe("react");
   });
 
+  it("detects foldkit", async () => {
+    await writePackageJson({ dependencies: { foldkit: "^0.104.0" } });
+    expect(await detectFramework(projectRoot)).toBe("foldkit");
+  });
+
   it("detects solid via solid-js", async () => {
     await writePackageJson({ dependencies: { "solid-js": "^1.9.0" } });
     expect(await detectFramework(projectRoot)).toBe("solid");

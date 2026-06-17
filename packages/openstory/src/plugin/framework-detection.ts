@@ -38,6 +38,7 @@ const pickFramework = (packageJson: PackageJsonShape): Framework | undefined => 
   };
   const candidates: Framework[] = [];
   if ("react" in allDependencies) candidates.push("react");
+  if ("foldkit" in allDependencies) candidates.push("foldkit");
   if ("solid-js" in allDependencies) candidates.push("solid");
   if ("vue" in allDependencies) candidates.push("vue");
   if ("svelte" in allDependencies) candidates.push("svelte");
@@ -56,6 +57,7 @@ export const detectFramework = async (projectRoot: string): Promise<Framework> =
   };
   const candidates: Framework[] = [];
   if ("react" in allDependencies) candidates.push("react");
+  if ("foldkit" in allDependencies) candidates.push("foldkit");
   if ("solid-js" in allDependencies) candidates.push("solid");
   if ("vue" in allDependencies) candidates.push("vue");
   if ("svelte" in allDependencies) candidates.push("svelte");

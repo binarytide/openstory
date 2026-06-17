@@ -17,6 +17,7 @@ export const DEFAULT_IGNORE_GLOBS = [
 
 export const DEFAULT_COMPONENT_GLOBS_BY_FRAMEWORK: Record<string, string[]> = {
   react: ["**/*.{tsx,jsx}"],
+  foldkit: ["**/main.ts"],
   solid: ["**/*.{tsx,jsx}"],
   vue: ["**/*.vue"],
   svelte: ["**/*.svelte"],
@@ -56,6 +57,7 @@ export const URL_KV_KEY_VALUE_SEPARATOR = ":";
 
 export const OPENSTORY_FRAMEWORK_TO_ADAPTER: Record<string, string> = {
   react: "openstory/react",
+  foldkit: "openstory/foldkit",
   solid: "openstory/solid",
   vue: "openstory/vue",
   svelte: "openstory/svelte",

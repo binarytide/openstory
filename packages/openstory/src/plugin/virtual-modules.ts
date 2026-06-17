@@ -21,6 +21,10 @@ const COMPONENT_FRAMEWORK_HELPERS: Record<Framework, ComponentFrameworkHelpers> 
     renderExpression: (componentLocal) =>
       `(args) => __openstoryCreateElement(${componentLocal}, args)`,
   },
+  foldkit: {
+    importLine: "",
+    renderExpression: (componentLocal) => `() => ${componentLocal}`,
+  },
   solid: {
     importLine: `import { createComponent as __openstoryCreateComponent } from "solid-js";`,
     renderExpression: (componentLocal) =>

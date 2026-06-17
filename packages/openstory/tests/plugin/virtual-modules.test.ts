@@ -24,6 +24,10 @@ const FRAMEWORK_RENDER_EXPECTATIONS: Record<Framework, { importLine: RegExp; ren
     importLine: /from\s+"react"/,
     render: /__openstoryCreateElement\(__openstoryComponent, args\)/,
   },
+  foldkit: {
+    importLine: /openstory\/foldkit/,
+    render: /\(\) => __openstoryComponent/,
+  },
   solid: {
     importLine: /from\s+"solid-js"/,
     render: /__openstoryCreateComponent\(__openstoryComponent, args\)/,

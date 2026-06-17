@@ -26,6 +26,7 @@ export default defineConfig({
       entry: {
         boot: "./src/boot/index.ts",
         react: "./src/react/index.ts",
+        foldkit: "./src/foldkit/index.ts",
         solid: "./src/solid/index.ts",
         vue: "./src/vue/index.ts",
         svelte: "./src/svelte/index.ts",

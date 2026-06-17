@@ -12,7 +12,13 @@ import { runList } from "./list.js";
 import { runPreview } from "./preview.js";
 
 const parseFramework = (value: unknown): Framework | undefined => {
-  if (value === "react" || value === "solid" || value === "vue" || value === "svelte") {
+  if (
+    value === "react" ||
+    value === "foldkit" ||
+    value === "solid" ||
+    value === "vue" ||
+    value === "svelte"
+  ) {
     return value;
   }
   return undefined;
@@ -89,7 +95,7 @@ const buildProgram = (projectRoot: string): Command => {
     .option("--port <port>", "dev server port", String(DEFAULT_DEV_PORT))
     .option("--host <host>", "dev server host", "localhost")
     .option("--open", "open the browser on start", false)
-    .option("--framework <framework>", "react|solid|vue|svelte (auto-detected by default)")
+    .option("--framework <framework>", "react|foldkit|solid|vue|svelte (auto-detected by default)")
     .option("--components", "synthesize stories from components on the fly", false)
     .option(
       "--components-include <glob>",
@@ -118,7 +124,7 @@ const buildProgram = (projectRoot: string): Command => {
     .description("build a static deployable site")
     .option("--out <dir>", "output directory", "dist")
     .option("--base <base>", "public base path", "/")
-    .option("--framework <framework>", "react|solid|vue|svelte (auto-detected by default)")
+    .option("--framework <framework>", "react|foldkit|solid|vue|svelte (auto-detected by default)")
     .option("--components", "synthesize stories from components on the fly", false)
     .option(
       "--components-include <glob>",
@@ -178,7 +184,7 @@ const buildProgram = (projectRoot: string): Command => {
     .command("generate")
     .description("generate CSF 3 stories for components")
     .argument("[targets...]", "file path(s) or glob(s); defaults to framework component glob")
-    .option("--framework <framework>", "react|solid|vue|svelte (auto-detected by default)")
+    .option("--framework <framework>", "react|foldkit|solid|vue|svelte (auto-detected by default)")
     .option("--force", "overwrite existing story files", false)
     .option("--dry-run", "print results without writing files", false)
     .action(async (targets: string[], options: GenerateCliInputOptions) => {

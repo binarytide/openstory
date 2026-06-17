@@ -17,8 +17,9 @@ export interface BuildInlineViteConfigResult {
   framework: Framework;
 }
 
-const FRAMEWORK_PLUGIN_PACKAGES: Record<Framework, string> = {
+const FRAMEWORK_PLUGIN_PACKAGES: Record<Framework, string | undefined> = {
   react: "@vitejs/plugin-react",
+  foldkit: undefined,
   solid: "vite-plugin-solid",
   vue: "@vitejs/plugin-vue",
   svelte: "@sveltejs/vite-plugin-svelte",
@@ -32,6 +33,7 @@ const requireFromProject = (projectRoot: string, packageName: string): unknown =
 
 const buildFrameworkPlugin = (projectRoot: string, framework: Framework): PluginOption => {
   const packageName = FRAMEWORK_PLUGIN_PACKAGES[framework];
+  if (packageName === undefined) return { name: "openstory-foldkit-framework" };
   let frameworkPluginModule: unknown;
   try {
     frameworkPluginModule = requireFromProject(projectRoot, packageName);

@@ -140,6 +140,9 @@ export const findComponentsInFile = (
   filename: string,
   framework: Framework,
 ): DetectedComponent[] => {
+  if (framework === "foldkit") {
+    return [{ name: fileBaseAsComponentName(filename), isDefaultExport: true }];
+  }
   if (framework === "vue" || framework === "svelte") {
     return [{ name: fileBaseAsComponentName(filename), isDefaultExport: true }];
   }

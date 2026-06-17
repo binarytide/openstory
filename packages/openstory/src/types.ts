@@ -1,4 +1,4 @@
-export type Framework = "react" | "solid" | "vue" | "svelte";
+export type Framework = "react" | "foldkit" | "solid" | "vue" | "svelte";
 
 export interface Manifest {
   v: 1;
